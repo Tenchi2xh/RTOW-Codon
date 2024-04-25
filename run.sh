@@ -6,7 +6,7 @@ if [ $# -eq 0 ]; then
     mv rtow/__main__ r
     time ./r
     echo
-    imgcat main.ppm
+    imgcat -W 2400px main.ppm
 else
     time codon run --release "$1"
 fi

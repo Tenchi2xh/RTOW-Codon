@@ -1,4 +1,5 @@
 from math import sqrt
+from random import random, uniform
 
 class Vec3:
     x: float
@@ -50,6 +51,32 @@ class Vec3:
 
     def unit(self):
         return self / self.length()
+    
+    @staticmethod
+    def random():
+        return Vec3(random(), random(), random())
+
+    @staticmethod
+    def random(min: float, max: float):
+        return Vec3(uniform(min, max), uniform(min, max), uniform(min, max))
+
+    @staticmethod
+    def random_in_unit_sphere():
+        while True:
+            p = Vec3.random(-1.0, 1.0)
+            if p.length_squared() < 1:
+                return p
+
+    @staticmethod
+    def random_unit():
+        return Vec3.random_in_unit_sphere().unit()
+
+    @staticmethod
+    def random_on_hemisphere(normal: Vec3):
+        on_unit_sphere = Vec3.random_unit()
+        if on_unit_sphere.dot(normal) > 0.0:  # In the same hemisphere as the normal
+            return on_unit_sphere
+        return -on_unit_sphere
 
 
 @extend # type: ignore

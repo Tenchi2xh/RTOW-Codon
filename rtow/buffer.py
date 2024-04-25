@@ -1,3 +1,4 @@
+from math import sqrt
 from typing import List, Tuple
 
 import ppm
@@ -6,6 +7,10 @@ from .vec3 import Color
 
 
 intensity = Interval(0.000, 0.999)
+
+def linear_to_gamma_8bit(linear: float) -> UInt[8]:
+    linear = sqrt(linear) if linear > 0 else 0
+    return UInt[8](256 * intensity.clamp(linear))
 
 
 class Buffer:
@@ -35,9 +40,9 @@ class Buffer:
         return [
             [
                 (
-                    int(256 * intensity.clamp(c.x)),
-                    int(256 * intensity.clamp(c.y)),
-                    int(256 * intensity.clamp(c.z)),
+                    linear_to_gamma_8bit(c.x),
+                    linear_to_gamma_8bit(c.y),
+                    linear_to_gamma_8bit(c.z),
                 )
                 for c in row
             ]

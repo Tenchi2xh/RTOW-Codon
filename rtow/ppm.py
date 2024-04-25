@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 
-def save(buffer: List[List[Tuple[int, int, int]]], name: str):
+def save(buffer: List[List[Tuple[UInt[8], UInt[8], UInt[8]]]], name: str):
     assert len(buffer) > 0
     width = len(buffer[0])
     height = len(buffer)
@@ -17,7 +17,7 @@ def save(buffer: List[List[Tuple[int, int, int]]], name: str):
 if __name__ == "__main__":
     w = 256
     buffer = [
-        [(int(255 * x / (w - 1)), int(255 * y / (w - 1)), 0) for x in range(w)]
+        [(UInt[8](255 * x / (w - 1)), UInt[8](255 * y / (w - 1)), UInt[8](0)) for x in range(w)]
         for y in range(w)
     ]
 

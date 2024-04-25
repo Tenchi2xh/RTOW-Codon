@@ -18,6 +18,7 @@ class Camera:
     pixel_delta_v: Vec3         # Offset to pixel below
     samples_per_pixel: int      # Count of random samples for each pixel (antialiasing)
     pixel_samples_scale: float  # Color scale factor for a sum of pixel samples
+    max_depth: int              # Maximum number of ray bounces into scene
 
     #             Δu           ---> viewport_u
     #      Q     |--|
@@ -30,7 +31,13 @@ class Camera:
     #   v   +---------------------+
     #   viewport_v
 
-    def __init__(self, aspect_ratio: float, image_width: int, samples_per_pixel: int):
+    def __init__(
+            self,
+            aspect_ratio: float = 1.0,
+            image_width: int = 100,
+            samples_per_pixel: int = 10,
+            max_depth: int = 10,
+        ):
         self.aspect_ratio = aspect_ratio
         self.image_width = image_width
         self.samples_per_pixel = samples_per_pixel
@@ -40,6 +47,7 @@ class Camera:
         self.pixel_samples_scale = 1.0 / samples_per_pixel
 
         self.center = Point3(0, 0, 0)
+        self.max_depth = max_depth
 
         # Determine viewport dimensions
         focal_length = 1.0
@@ -58,12 +66,26 @@ class Camera:
         viewport_upper_left = self.center - Vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2
         self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self. pixel_delta_v)
 
-    def ray_color(self, r: Ray, world: Hittable) -> Color:
-        hit: Optional[Hit] = world.hit(r, Interval(0, float("inf")))
+    def ray_color(self, r: Ray, depth: int, world: Hittable) -> Color:
+        # If we've exceeded the ray bounce limit, no more light is gathered
+        if depth <= 0:
+            return Color(0, 0, 0)
+
+        # Min distance is 0.001 to avoid floating point precision errors
+        # That way if the ray starts just below a surface,
+        # that surface will be ignored and the ray can escape
+        hit: Optional[Hit] = world.hit(r, Interval(0.001, float("inf")))
+
+        # TODO: Flag to ignore materials and show normals
+        # if hit:
+        #     return 0.5 * (hit.normal + Color(1, 1, 1))
 
         if hit:
-            return 0.5 * (hit.normal + Color(1, 1, 1))
+            # Lambertian diffuse bounce
+            bounce_direction = hit.normal + Vec3.random_unit()
+            return 0.5 * self.ray_color(Ray(hit.p, bounce_direction), depth - 1, world)
 
+        # Sky
         unit_direction = r.dir.unit()
         a = 0.5 * (unit_direction.y + 1.0)
         return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0)
@@ -77,7 +99,7 @@ class Camera:
                 pixel_color = Color(0, 0, 0)
                 for _ in range(self.samples_per_pixel):
                     r = self.get_ray(i, j)
-                    pixel_color += self.ray_color(r, world)
+                    pixel_color += self.ray_color(r, self.max_depth, world)
 
                 row.append(self.pixel_samples_scale * pixel_color)
             b[j] = row
