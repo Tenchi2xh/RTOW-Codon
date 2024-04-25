@@ -1,9 +1,12 @@
 from math import tan
+from threading import Lock, get_ident
+from typing import List, Tuple
 
+from .chunks import CoordChunk, create_coordinate_chunks
 from .util import degrees_to_radians, sample_square
 from .buffer import Buffer
 from .interval import Interval
-from .types import Hittable
+from .types import Hit, Hittable
 from .ray import Ray
 from .vec3 import Color, Point3, Vec3
 
@@ -21,6 +24,9 @@ class Camera:
     u: Vec3                     # Camera frame basis vectors
     v: Vec3                     #
     w: Vec3                     #
+    chunk_size: int             # Size of chunks for each thread
+
+    lock = Lock()
 
     #             Δu           ---> viewport_u
     #      Q     |--|
@@ -43,6 +49,7 @@ class Camera:
             lookfrom: Point3 = Point3(0, 0, 0),  # Point camera is looking from
             lookat: Point3 = Point3(0, 0, -1),   # Point camera is looking at
             vup: Vec3 = Vec3(0, 1, 0),           # Camera-relative "up" direction
+            chunk_size: int = 32,                # Size of chunks for each thread
         ):
         self.image_width = image_width
         self.samples_per_pixel = samples_per_pixel
@@ -53,6 +60,8 @@ class Camera:
 
         self.center = lookfrom
         self.max_depth = max_depth
+
+        self.chunk_size = chunk_size
 
         # Determine viewport dimensions
         focal_length = (lookfrom - lookat).length()
@@ -106,16 +115,32 @@ class Camera:
     def render(self, world: Hittable) -> Buffer:
         b = Buffer(self.image_width, self.image_height)
 
-        for j in range(self.image_height):
-            row = []
-            for i in range(self.image_width):
-                pixel_color = Color(0, 0, 0)
-                for _ in range(self.samples_per_pixel):
-                    r = self.get_ray(i, j)
-                    pixel_color += self.ray_color(r, self.max_depth, world)
+        coords_chunks = create_coordinate_chunks(self.image_width, self.image_height, self.chunk_size)
 
-                row.append(self.pixel_samples_scale * pixel_color)
-            b[j] = row
+        def calculate_pixel(i: int, j: int) -> Color:
+            pixel_color = Color(0, 0, 0)
+            for _ in range(self.samples_per_pixel):
+                r = self.get_ray(i, j)
+                pixel_color += self.ray_color(r, self.max_depth, world)
+            return self.pixel_samples_scale * pixel_color
+
+        color_chunks = []
+
+        # @par(chunk_size=1)
+        for coords in coords_chunks:
+            colors = [
+                [calculate_pixel(i + coords.x0, j + coords.y0) for i in range(coords.width)]
+                for j in range(coords.height)
+            ]
+            with self.lock:
+                color_chunks.append((coords, colors))
+
+        # Reassemble picture
+        for chunk in color_chunks:
+            coords, colors = chunk
+            for j in range(len(colors)):
+                for i in range(len(colors[j])):
+                    b[i + coords.x0, j + coords.y0] = colors[j][i]
 
         return b
 
