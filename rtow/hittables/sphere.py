@@ -1,7 +1,8 @@
 from math import sqrt
 from typing import Optional
 
-from .. import Hittable, Hit, Point3, Ray, Interval
+from .hittable import Hittable, Hit
+from .. import Point3, Ray, Interval
 
 
 class Sphere(Hittable):

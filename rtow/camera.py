@@ -3,7 +3,7 @@ from typing import Optional
 from .util import sample_square
 from .buffer import Buffer
 from .interval import Interval
-from .hittable import Hit, Hittable
+from .hittables import Hit, Hittable
 from .ray import Ray
 from .vec3 import Color, Point3, Vec3
 

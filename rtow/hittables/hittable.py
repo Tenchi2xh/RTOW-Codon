@@ -1,8 +1,7 @@
 from typing import Optional
 
-from .interval import Interval
-from .vec3 import Point3, Vec3
-from .ray import Ray
+from .. import Interval, Point3, Vec3, Ray
+
 
 class Hit:
     p: Point3

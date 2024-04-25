@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from .. import Hittable, Hit, Point3, Ray, Interval
+from .hittable import Hittable, Hit
+from .. import Ray, Interval
 
 
 class HittableList(Hittable):

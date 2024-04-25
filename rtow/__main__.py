@@ -1,6 +1,3 @@
-from math import sqrt
-from typing import Optional
-
 from .camera import Camera
 from .vec3 import Point3
 from .hittables import Sphere, HittableList
