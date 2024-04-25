@@ -83,6 +83,13 @@ class Vec3:
                 return p
 
     @staticmethod
+    def random_in_unit_disk():
+        while True:
+            p = Vec3(uniform(-1.0, 1.0), uniform(-1.0, 1.0), 0)
+            if p.length_squared() < 1:
+                return p
+
+    @staticmethod
     def random_unit():
         return Vec3.random_in_unit_sphere().unit()
 

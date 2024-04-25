@@ -46,6 +46,8 @@ if __name__ == "__main__":
         lookfrom=Point3(-2, 2, 1),
         lookat=Point3(0, 0, -1),
         vup=Vec3(0, 1, 0),
+        defocus_angle=10.0,
+        focus_dist=3.4,
     )
 
     buffer = camera.render(world1())

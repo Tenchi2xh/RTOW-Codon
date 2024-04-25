@@ -21,17 +21,9 @@ class Camera:
     u: Vec3                     # Camera frame basis vectors
     v: Vec3                     #
     w: Vec3                     #
-
-    #             Δu           ---> viewport_u
-    #      Q     |--|
-    #       +---------------------+
-    #       | .  .  .  .  .  .  . |  ---
-    #       | .  .  .  .  .  .  . |   |  Δv
-    #       | .  .  .  .  .  .  . |  ---
-    #   |   | .  .  .  .  .  .  . |
-    #   |   | .  .  .  .  .  .  . |
-    #   v   +---------------------+
-    #   viewport_v
+    defocus_angle: float        # Variation angle of rays through each pixel
+    defocus_disk_u: Vec3        # Defocus disk horizontal radius
+    defocus_disk_v: Vec3        # Defocus disk vertical radius
 
     def __init__(
             self,
@@ -43,6 +35,8 @@ class Camera:
             lookfrom: Point3 = Point3(0, 0, 0),  # Point camera is looking from
             lookat: Point3 = Point3(0, 0, -1),   # Point camera is looking at
             vup: Vec3 = Vec3(0, 1, 0),           # Camera-relative "up" direction
+            defocus_angle: float = 0,            # Variation angle of rays through each pixel
+            focus_dist: float = 10,              # Distance from camera lookfrom point to plane of perfect focus
         ):
         self.image_width = image_width
         self.samples_per_pixel = samples_per_pixel
@@ -54,14 +48,15 @@ class Camera:
         self.center = lookfrom
         self.max_depth = max_depth
 
+        self.defocus_angle = defocus_angle
+
         # Determine viewport dimensions
-        focal_length = (lookfrom - lookat).length()
         theta = degrees_to_radians(vfov)
         h = tan(theta / 2)
-        viewport_height = 2 * h * focal_length
+        viewport_height = 2 * h * focus_dist
         viewport_width = viewport_height * real_aspect_ratio
 
-        # Calculate the u,v,w unit basis vectors for the camera coordinate frame.
+        # Calculate the u,v,w unit basis vectors for the camera coordinate frame
         self.w = (lookfrom - lookat).unit()
         self.u = vup.cross(self.w).unit()
         self.v = self.w.cross(self.u)
@@ -74,9 +69,14 @@ class Camera:
         self.pixel_delta_u = viewport_u / self.image_width
         self.pixel_delta_v = viewport_v / self.image_height
 
-        # Calculate the location of the upper left pixel.
-        viewport_upper_left = self.center - (focal_length * self.w) - viewport_u / 2 - viewport_v / 2
+        # Calculate the location of the upper left pixel
+        viewport_upper_left = self.center - (focus_dist * self.w) - viewport_u / 2 - viewport_v / 2
         self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self. pixel_delta_v)
+
+        # Calculate the camera defocus disk basis vectors
+        defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle / 2))
+        self.defocus_disk_u = self.u * defocus_radius
+        self.defocus_disk_v = self.v * defocus_radius
 
     def ray_color(self, r: Ray, depth: int, world: Hittable) -> Color:
         # If we've exceeded the ray bounce limit, no more light is gathered
@@ -121,8 +121,8 @@ class Camera:
 
     def get_ray(self, i: int, j: int) -> Ray:
         """
-        Constructs a camera ray originating from the origin and directed at randomly sampled
-        point around the pixel location i, j
+        Construct a camera ray originating from the defocus disk and directed at a randomly
+        sampled point around the pixel location i, j.
         """
 
         offset = sample_square()
@@ -132,4 +132,15 @@ class Camera:
             ((j + offset.y) * self.pixel_delta_v)
         )
 
-        return Ray(self.center, pixel_sample - self.center)
+        ray_origin = self.center if self.defocus_angle <= 0 else self.defocus_disk_sample()
+        ray_direction = pixel_sample - ray_origin
+
+        return Ray(
+            orig=ray_origin,
+            dir=ray_direction,
+        )
+
+    def defocus_disk_sample(self):
+        """Returns a random point in the camera defocus disk."""
+        p = Vec3.random_in_unit_disk()
+        return self.center + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
