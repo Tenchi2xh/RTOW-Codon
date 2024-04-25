@@ -32,6 +32,16 @@ class Material:
         assert False, "Calling abstract"
 
 
+# Codon doesn't support mutually recursive classes
+class HitMat:
+    hit: Hit
+    mat: Material
+
+    def __init__(self, hit: Hit, mat: Material):
+        self.hit = hit
+        self.mat = mat
+
+
 class Hittable:
-    def hit(self, r: Ray, interval: Interval) -> Optional[Tuple[Hit, Material]]:
+    def hit(self, r: Ray, interval: Interval) -> Optional[HitMat]:
         assert False, "Calling abstract"

@@ -74,14 +74,14 @@ class Camera:
         # Min distance is 0.001 to avoid floating point precision errors
         # That way if the ray starts just below a surface,
         # that surface will be ignored and the ray can escape
-        hit = world.hit(r, Interval(0.001, float("inf")))
+        hit_mat = world.hit(r, Interval(0.001, float("inf")))
 
         # TODO: Flag to ignore materials and show normals
         # if hit:
         #     return 0.5 * (hit.normal + Color(1, 1, 1))
 
-        if hit:
-            scatter = hit[1].scatter(r, hit[0])
+        if hit_mat:
+            scatter = hit_mat.mat.scatter(r, hit_mat.hit)
             if scatter:
                 return scatter.attenuation * self.ray_color(scatter.scattered, depth - 1, world)
             return Color(0, 0, 0)

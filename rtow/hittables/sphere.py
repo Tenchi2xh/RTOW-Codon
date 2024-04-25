@@ -1,7 +1,7 @@
 from math import sqrt
 from typing import Optional, Tuple
 
-from .. import Point3, Ray, Interval, Hittable, Hit, Material
+from .. import Point3, Ray, Interval, Hittable, Hit, Material, HitMat
 
 
 class Sphere(Hittable):
@@ -14,7 +14,7 @@ class Sphere(Hittable):
         self.radius = max(0, radius)
         self.mat = mat
 
-    def hit(self, r: Ray, interval: Interval) -> Optional[Tuple[Hit, Material]]:
+    def hit(self, r: Ray, interval: Interval) -> Optional[HitMat]:
         oc = self.center - r.orig
         a = r.dir.length_squared()
         h = r.dir.dot(oc)
@@ -34,9 +34,12 @@ class Sphere(Hittable):
                 return None
 
         p = r.at(root)
-        return Hit(
-            p=p,
-            t=root,
-            outward_normal=(p - self.center) / self.radius,
-            r=r,
-        ), self.mat
+        return HitMat(
+            hit=Hit(
+                p=p,
+                t=root,
+                outward_normal=(p - self.center) / self.radius,
+                r=r,
+            ),
+            mat=self.mat
+        )
