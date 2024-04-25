@@ -58,6 +58,9 @@ class Vec3:
     def unit(self):
         return self / self.length()
     
+    def reflect(self, normal: Vec3):
+        return self - 2 * self.dot(normal) * normal
+
     @staticmethod
     def random():
         return Vec3(random(), random(), random())
