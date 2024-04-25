@@ -1,5 +1,6 @@
 from typing import Optional
 
+from .util import sample_square
 from .buffer import Buffer
 from .interval import Interval
 from .hittable import Hit, Hittable
@@ -8,13 +9,15 @@ from .vec3 import Color, Point3, Vec3
 
 
 class Camera:
-    aspect_ratio: float  # Ratio of image width over height
-    image_width: int     # Rendered image width in pixel count
-    image_height: int    # Rendered image height
-    center: Point3       # Camera center
-    pixel00_loc: Point3  # Location of pixel 0, 0
-    pixel_delta_u: Vec3  # Offset to pixel to the right
-    pixel_delta_v: Vec3  # Offset to pixel below
+    aspect_ratio: float         # Ratio of image width over height
+    image_width: int            # Rendered image width in pixel count
+    image_height: int           # Rendered image height
+    center: Point3              # Camera center
+    pixel00_loc: Point3         # Location of pixel 0, 0
+    pixel_delta_u: Vec3         # Offset to pixel to the right
+    pixel_delta_v: Vec3         # Offset to pixel below
+    samples_per_pixel: int      # Count of random samples for each pixel (antialiasing)
+    pixel_samples_scale: float  # Color scale factor for a sum of pixel samples
 
     #             Δu           ---> viewport_u
     #      Q     |--|
@@ -27,12 +30,14 @@ class Camera:
     #   v   +---------------------+
     #   viewport_v
 
-    def __init__(self, aspect_ratio: float, image_width: int):
+    def __init__(self, aspect_ratio: float, image_width: int, samples_per_pixel: int):
         self.aspect_ratio = aspect_ratio
         self.image_width = image_width
+        self.samples_per_pixel = samples_per_pixel
 
         self.image_height = max(1, int(image_width / aspect_ratio))
         real_aspect_ratio = image_width / self.image_height
+        self.pixel_samples_scale = 1.0 / samples_per_pixel
 
         self.center = Point3(0, 0, 0)
 
@@ -66,17 +71,30 @@ class Camera:
     def render(self, world: Hittable) -> Buffer:
         b = Buffer(self.image_width, self.image_height)
 
-        #@par # type: ignore
         for j in range(self.image_height):
             row = []
             for i in range(self.image_width):
-                pixel_center = self.pixel00_loc + (i * self.pixel_delta_u) + (j * self.pixel_delta_v)
-                ray_direction = pixel_center - self.center
-                r = Ray(self.center, ray_direction)
+                pixel_color = Color(0, 0, 0)
+                for _ in range(self.samples_per_pixel):
+                    r = self.get_ray(i, j)
+                    pixel_color += self.ray_color(r, world)
 
-                pixel_color = self.ray_color(r, world)
-
-                row.append(pixel_color)
+                row.append(self.pixel_samples_scale * pixel_color)
             b[j] = row
 
         return b
+
+    def get_ray(self, i: int, j: int) -> Ray:
+        """
+        Constructs a camera ray originating from the origin and directed at randomly sampled
+        point around the pixel location i, j
+        """
+
+        offset = sample_square()
+        pixel_sample = (
+            self.pixel00_loc +
+            ((i + offset.x) * self.pixel_delta_u) +
+            ((j + offset.y) * self.pixel_delta_v)
+        )
+
+        return Ray(self.center, pixel_sample - self.center)

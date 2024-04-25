@@ -14,7 +14,8 @@ if __name__ == "__main__":
 
     camera = Camera(
         aspect_ratio=16.0 / 9.0,
-        image_width=1280
+        image_width=1280,
+        samples_per_pixel=10,
     )
 
     buffer = camera.render(world)

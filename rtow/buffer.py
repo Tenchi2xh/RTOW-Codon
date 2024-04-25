@@ -1,7 +1,11 @@
 from typing import List, Tuple
 
 import ppm
+from .interval import Interval
 from .vec3 import Color
+
+
+intensity = Interval(0.000, 0.999)
 
 
 class Buffer:
@@ -29,7 +33,14 @@ class Buffer:
 
     def raw_buffer(self):
         return [
-            [(int(255 * c.x), int(255 * c.y), int(255 * c.z)) for c in row]
+            [
+                (
+                    int(256 * intensity.clamp(c.x)),
+                    int(256 * intensity.clamp(c.y)),
+                    int(256 * intensity.clamp(c.z)),
+                )
+                for c in row
+            ]
             for row in self.buffer
         ]
 

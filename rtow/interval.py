@@ -18,6 +18,13 @@ class Interval:
     
     def surrounds(self, x: float):
         return self.min < x < self.max
+    
+    def clamp(self, x: float):
+        if x < self.min:
+            return self.min
+        elif x > self.max:
+            return self.max
+        return x
 
 empty = Interval(float("+inf"), float("-inf"))
 universe = Interval(float("-inf"), float("+inf"))
