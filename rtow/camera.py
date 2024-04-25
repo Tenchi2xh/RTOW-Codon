@@ -1,15 +1,14 @@
-from typing import Optional
+from math import tan
 
-from .util import sample_square
+from .util import degrees_to_radians, sample_square
 from .buffer import Buffer
 from .interval import Interval
-from .types import Hit, Hittable
+from .types import Hittable
 from .ray import Ray
 from .vec3 import Color, Point3, Vec3
 
 
 class Camera:
-    aspect_ratio: float         # Ratio of image width over height
     image_width: int            # Rendered image width in pixel count
     image_height: int           # Rendered image height
     center: Point3              # Camera center
@@ -19,6 +18,9 @@ class Camera:
     samples_per_pixel: int      # Count of random samples for each pixel (antialiasing)
     pixel_samples_scale: float  # Color scale factor for a sum of pixel samples
     max_depth: int              # Maximum number of ray bounces into scene
+    u: Vec3                     # Camera frame basis vectors
+    v: Vec3                     #
+    w: Vec3                     #
 
     #             Δu           ---> viewport_u
     #      Q     |--|
@@ -33,12 +35,15 @@ class Camera:
 
     def __init__(
             self,
-            aspect_ratio: float = 1.0,
-            image_width: int = 100,
-            samples_per_pixel: int = 10,
-            max_depth: int = 10,
+            aspect_ratio: float = 1.0,           # Ratio of image width over height
+            image_width: int = 100,              # Rendered image width in pixel count
+            samples_per_pixel: int = 10,         # Count of random samples for each pixel (antialiasing)
+            max_depth: int = 10,                 # Maximum number of ray bounces into scene
+            vfov: float = 90,                    # Vertical view angle (field of view)
+            lookfrom: Point3 = Point3(0, 0, 0),  # Point camera is looking from
+            lookat: Point3 = Point3(0, 0, -1),   # Point camera is looking at
+            vup: Vec3 = Vec3(0, 1, 0),           # Camera-relative "up" direction
         ):
-        self.aspect_ratio = aspect_ratio
         self.image_width = image_width
         self.samples_per_pixel = samples_per_pixel
 
@@ -46,24 +51,31 @@ class Camera:
         real_aspect_ratio = image_width / self.image_height
         self.pixel_samples_scale = 1.0 / samples_per_pixel
 
-        self.center = Point3(0, 0, 0)
+        self.center = lookfrom
         self.max_depth = max_depth
 
         # Determine viewport dimensions
-        focal_length = 1.0
-        viewport_height = 2.0
+        focal_length = (lookfrom - lookat).length()
+        theta = degrees_to_radians(vfov)
+        h = tan(theta / 2)
+        viewport_height = 2 * h * focal_length
         viewport_width = viewport_height * real_aspect_ratio
 
+        # Calculate the u,v,w unit basis vectors for the camera coordinate frame.
+        self.w = (lookfrom - lookat).unit()
+        self.u = vup.cross(self.w).unit()
+        self.v = self.w.cross(self.u)
+
         # Calculate the vectors across the horizontal and down the vertical viewport edges
-        viewport_u = Vec3(viewport_width, 0, 0)
-        viewport_v = Vec3(0, -viewport_height, 0)
+        viewport_u = viewport_width * self.u    # Vector across viewport horizontal edge
+        viewport_v = viewport_height * -self.v  # Vector down viewport vertical edge
 
         # Calculate the horizontal and vertical delta vectors from pixel to pixel
         self.pixel_delta_u = viewport_u / self.image_width
         self.pixel_delta_v = viewport_v / self.image_height
 
         # Calculate the location of the upper left pixel.
-        viewport_upper_left = self.center - Vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2
+        viewport_upper_left = self.center - (focal_length * self.w) - viewport_u / 2 - viewport_v / 2
         self.pixel00_loc = viewport_upper_left + 0.5 * (self.pixel_delta_u + self. pixel_delta_v)
 
     def ray_color(self, r: Ray, depth: int, world: Hittable) -> Color:
