@@ -1,7 +1,6 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
-from .hittable import Hittable, Hit
-from .. import Ray, Interval
+from .. import Ray, Interval, Hittable, Hit, Material
 
 
 class HittableList(Hittable):
@@ -19,14 +18,14 @@ class HittableList(Hittable):
     def add(self, hittable: Hittable):
         self.hittables.append(hittable)
 
-    def hit(self, r: Ray, interval: Interval) -> Optional[Hit]:
-        hit: Optional[Hit] = None
+    def hit(self, r: Ray, interval: Interval) -> Optional[Tuple[Hit, Material]]:
+        hit: Optional[Tuple[Hit, Material]] = None
         closest_so_far = interval.max
 
         for hittable in self.hittables:
             candidate_hit = hittable.hit(r, Interval(interval.min, closest_so_far))
             if candidate_hit:
-                closest_so_far = candidate_hit.t
+                closest_so_far = candidate_hit[0].t
                 hit = candidate_hit
 
         return hit

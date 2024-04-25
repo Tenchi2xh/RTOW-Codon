@@ -1,6 +1,9 @@
 from math import sqrt
 from random import random, uniform
 
+s: float = 1e-8
+
+
 class Vec3:
     x: float
     y: float
@@ -38,6 +41,9 @@ class Vec3:
 
     def length_squared(self) -> float:
         return self.x * self.x + self.y * self.y + self.z * self.z
+
+    def near_zero(self) -> bool:
+        return abs(self.x) < s and abs(self.y) < s and abs(self.z) < s
 
     def dot(self, other: Vec3):
         return self.x * other.x + self.y * other.y + self.z * other.z

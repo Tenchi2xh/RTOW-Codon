@@ -3,7 +3,7 @@ from typing import Optional
 from .util import sample_square
 from .buffer import Buffer
 from .interval import Interval
-from .hittables import Hit, Hittable
+from .types import Hit, Hittable
 from .ray import Ray
 from .vec3 import Color, Point3, Vec3
 
@@ -74,16 +74,17 @@ class Camera:
         # Min distance is 0.001 to avoid floating point precision errors
         # That way if the ray starts just below a surface,
         # that surface will be ignored and the ray can escape
-        hit: Optional[Hit] = world.hit(r, Interval(0.001, float("inf")))
+        hit = world.hit(r, Interval(0.001, float("inf")))
 
         # TODO: Flag to ignore materials and show normals
         # if hit:
         #     return 0.5 * (hit.normal + Color(1, 1, 1))
 
         if hit:
-            # Lambertian diffuse bounce
-            bounce_direction = hit.normal + Vec3.random_unit()
-            return 0.5 * self.ray_color(Ray(hit.p, bounce_direction), depth - 1, world)
+            scatter = hit[1].scatter(r, hit[0])
+            if scatter:
+                return scatter.attenuation * self.ray_color(scatter.scattered, depth - 1, world)
+            return Color(0, 0, 0)
 
         # Sky
         unit_direction = r.dir.unit()

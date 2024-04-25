@@ -1,19 +1,20 @@
 from math import sqrt
-from typing import Optional
+from typing import Optional, Tuple
 
-from .hittable import Hittable, Hit
-from .. import Point3, Ray, Interval
+from .. import Point3, Ray, Interval, Hittable, Hit, Material
 
 
 class Sphere(Hittable):
     center: Point3
     radius: float
+    mat: Material
 
-    def __init__(self, center: Point3, radius: float):
+    def __init__(self, center: Point3, radius: float, mat: Material):
         self.center = center
         self.radius = max(0, radius)
+        self.mat = mat
 
-    def hit(self, r: Ray, interval: Interval) -> Optional[Hit]:
+    def hit(self, r: Ray, interval: Interval) -> Optional[Tuple[Hit, Material]]:
         oc = self.center - r.orig
         a = r.dir.length_squared()
         h = r.dir.dot(oc)
@@ -38,4 +39,4 @@ class Sphere(Hittable):
             t=root,
             outward_normal=(p - self.center) / self.radius,
             r=r,
-        )
+        ), self.mat
