@@ -2,7 +2,7 @@ from textwrap import dedent, indent
 from random import randint
 from typing import Callable, List, Optional
 
-from .aabb import AABB
+from .aabb import AABB, empty
 from .interval import Interval
 from .ray import Ray
 from .types import HitMat, Hittable
@@ -15,10 +15,10 @@ class BVHNode(Hittable):
     bbox: AABB
     depth: int
 
-    def __init__(self, left: Hittable, right: Hittable, depth: int):
+    def __init__(self, left: Hittable, right: Hittable, bbox: AABB, depth: int):
         self.left = left
         self.right = right
-        self.bbox = AABB.from_aabbs(left.bounding_box(), right.bounding_box())
+        self.bbox = bbox
         self.depth = depth
 
     @staticmethod
@@ -27,8 +27,13 @@ class BVHNode(Hittable):
 
     @staticmethod
     def make_node(objects: List[Hittable], start: int, end: int, depth: int):
-        axis = randint(0, 2)
 
+        # Build the bounding box of the span of source objects
+        bbox = empty
+        for i in range(start, end):
+            bbox = AABB.from_aabbs(bbox, objects[i].bounding_box())
+
+        axis = bbox.longest_axis()
         sort_key: Callable[[Hittable], float] = lambda a: -a.bounding_box().axis_interval(axis).min
 
         object_span = end - start
@@ -44,7 +49,7 @@ class BVHNode(Hittable):
             left = BVHNode.make_node(objects, start, mid, depth + 1)
             right = BVHNode.make_node(objects, mid, end, depth + 1)
 
-        return BVHNode(left, right, depth)
+        return BVHNode(left, right, bbox, depth)
 
 
     def hit(self, r: Ray, ray_t: Interval) -> Optional[HitMat]:

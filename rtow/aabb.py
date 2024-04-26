@@ -2,7 +2,7 @@ from typing import Optional
 
 from .ray import Ray
 from .vec3 import Point3
-from .interval import Interval
+from .interval import Interval, universe as i_universe, empty as i_empty
 
 
 class AABB:
@@ -59,3 +59,13 @@ class AABB:
                 return False
 
         return True
+    
+    def longest_axis(self):
+        # Returns the index of the longest axis of the bounding box.
+        if self.x.size() > self.y.size():
+            return 0 if self.x.size() > self.z.size() else 2
+        else:
+            return 1 if self.y.size() > self.z.size() else 2
+
+empty = AABB(i_empty, i_empty, i_empty)
+universe = AABB(i_universe, i_universe, i_universe)
