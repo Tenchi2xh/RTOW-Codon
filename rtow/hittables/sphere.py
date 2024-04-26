@@ -1,23 +1,39 @@
 from math import sqrt
-from typing import Optional, Tuple
+from typing import Optional
 
-from .. import Point3, Ray, Interval, Hittable, Hit, Material, HitMat
+from .. import Point3, Ray, Interval, Hittable, Hit, Material, HitMat, Vec3
 
 
 class Sphere(Hittable):
-    center: Point3
+    center0: Point3
     radius: float
     mat: Material
+    is_moving: bool
+    direction: Vec3
 
+    # Stationary sphere
     def __init__(self, center: Point3, radius: float, mat: Material):
-        self.center = center
+        self.center0 = center
         self.radius = max(0, radius)
         self.mat = mat
+        self.is_moving = False
+
+    # Moving sphere
+    def __init__(self, center0: Point3, center1: Point3, radius: float, mat: Material):
+        self.center0 = center0
+        self.radius = max(0, radius)
+        self.mat = mat
+        self.is_moving = True
+        self.direction = center1 - center0
+
+    def center(self, time: float):
+        return self.center0 + time * self.direction
 
     def hit(self, r: Ray, interval: Interval) -> Optional[HitMat]:
-        oc = self.center - r.orig
-        a = r.dir.length_squared()
-        h = r.dir.dot(oc)
+        center = self.center(r.time) if self.is_moving else self.center0
+        oc = center - r.origin
+        a = r.direction.length_squared()
+        h = r.direction.dot(oc)
         c = oc.length_squared() - self.radius * self.radius
 
         discriminant = h * h - a * c
@@ -38,7 +54,7 @@ class Sphere(Hittable):
             hit=Hit(
                 p=p,
                 t=root,
-                outward_normal=(p - self.center) / self.radius,
+                outward_normal=(p - center) / self.radius,
                 r=r,
             ),
             mat=self.mat

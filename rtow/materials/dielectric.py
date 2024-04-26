@@ -23,7 +23,7 @@ class Dielectric(Material):
     def scatter(self, r_in: Ray, hit: Hit) -> Optional[Scatter]:
         index_ratio = (1.0 / self.refractive_index) if hit.front_face else self.refractive_index
 
-        unit_direction = r_in.dir.unit()
+        unit_direction = r_in.direction.unit()
         cos_theta = min(-unit_direction.dot(hit.normal), 1.0)
         sin_theta = sqrt(1.0 - cos_theta * cos_theta)
 
@@ -35,6 +35,6 @@ class Dielectric(Material):
             direction = unit_direction.refract(hit.normal, index_ratio)
 
         return Scatter(
-            scattered=Ray(hit.p, direction),
+            scattered=Ray(hit.p, direction, r_in.time),
             attenuation=Color(1.0, 1.0, 1.0),
         )

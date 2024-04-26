@@ -22,7 +22,8 @@ if __name__ == "__main__":
                     # diffuse
                     albedo = Color.random() * Color.random()
                     sphere_material = Lambertian(albedo)
-                    world.add(Sphere(center, 0.2, sphere_material))
+                    center2 = center + Vec3(0, uniform(0, 0.5), 0)
+                    world.add(Sphere(center, center2, 0.2, sphere_material))
                 elif choose_mat < 0.95:
                     # metal
                     albedo = Color.random(0.5, 1)
@@ -46,8 +47,8 @@ if __name__ == "__main__":
     camera = Camera(
         aspect_ratio=16.0 / 9.0,
         image_width=400,
-        samples_per_pixel=10,
-        max_depth=10,
+        samples_per_pixel=400,
+        max_depth=50,
 
         vfov=20,
         lookfrom=Point3(13, 2, 3),

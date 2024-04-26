@@ -12,13 +12,13 @@ class Metal(Material):
         self.fuzz = fuzz
 
     def scatter(self, r_in: Ray, hit: Hit) -> Optional[Scatter]:
-        reflected = r_in.dir.reflect(hit.normal).unit()
+        reflected = r_in.direction.reflect(hit.normal).unit()
         reflected += self.fuzz * Vec3.random_unit()
 
         if reflected.dot(hit.normal) <= 0:
             return None
 
         return Scatter(
-            scattered=Ray(hit.p, reflected),
+            scattered=Ray(hit.p, reflected, r_in.time),
             attenuation=self.albedo,
         )

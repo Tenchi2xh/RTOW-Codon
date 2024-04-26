@@ -1,18 +1,25 @@
 from .vec3 import Point3, Vec3
 
 class Ray:
-    orig: Point3
-    dir: Vec3
+    origin: Point3
+    direction: Vec3
+    time: float
 
     def __init__(self, orig: Point3, dir: Vec3):
-        self.orig = orig
-        self.dir = dir
+        self.origin = orig
+        self.direction = dir
+        self.time = 0
+
+    def __init__(self, orig: Point3, dir: Vec3, time: float):
+        self.origin = orig
+        self.direction = dir
+        self.time = time
 
     def at(self, t: float):
-        return self.orig + t * self.dir
+        return self.origin + t * self.direction
 
     def __repr__(self):
-        return f"Ray(orig={self.orig}, dir={self.dir})"
+        return f"Ray(orig={self.origin}, dir={self.direction})"
 
 
 if __name__ == "__main__":

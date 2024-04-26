@@ -1,3 +1,4 @@
+from random import random
 import sys
 from math import tan
 
@@ -100,13 +101,13 @@ class Camera:
             return Color(0, 0, 0)
 
         # Sky
-        unit_direction = r.dir.unit()
+        unit_direction = r.direction.unit()
         a = 0.5 * (unit_direction.y + 1.0)
         return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0)
 
     def status(self, i):
         h = self.image_height
-        c = str(i).rjust(len(str(h)))
+        c = str(i + 1).rjust(len(str(h)))
         p = "100" if i + 1 == h else f"{100.0 * (i + 1) / float(h):4.1f}"
         print(f"\rRendering rows: {c} / {h} ({p}%)", end="", flush=True, file=sys.stderr)
 
@@ -145,10 +146,12 @@ class Camera:
 
         ray_origin = self.center if self.defocus_angle <= 0 else self.defocus_disk_sample()
         ray_direction = pixel_sample - ray_origin
+        ray_time = random()
 
         return Ray(
             orig=ray_origin,
             dir=ray_direction,
+            time=ray_time,
         )
 
     def defocus_disk_sample(self):
