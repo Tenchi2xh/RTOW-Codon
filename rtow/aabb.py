@@ -38,24 +38,24 @@ class AABB:
         if n == 2: return self.z
         return self.x
 
-    def hit(self, r: Ray) -> Optional[Interval]:
-        ray_t = Interval()
+    def hit(self, r: Ray, ray_t: Interval) -> bool:
+        t_min, t_max = ray_t.min, ray_t.max
 
         for axis in range(3):
             ax = self.axis_interval(axis)
-            adinv = 1.0 / r.direction[axis]
+            adinv = 1.0 / r.direction.axis(axis)
 
-            t0 = (ax.min - r.origin[axis]) * adinv
-            t1 = (ax.max - r.origin[axis]) * adinv
+            t0 = (ax.min - r.origin.axis(axis)) * adinv
+            t1 = (ax.max - r.origin.axis(axis)) * adinv
 
             if t0 < t1:
-                if t0 > ray_t.min: ray_t.min = t0
-                if t1 < ray_t.max: ray_t.max = t1
+                if t0 > t_min: t_min = t0
+                if t1 < t_max: t_max = t1
             else:
-                if t1 > ray_t.min: ray_t.min = t1
-                if t0 < ray_t.max: ray_t.max = t0
+                if t1 > t_min: t_min = t1
+                if t0 < t_max: t_max = t0
 
-            if ray_t.max <= ray_t.min:
-                return None
+            if t_max <= t_min:
+                return False
 
-        return ray_t
+        return True

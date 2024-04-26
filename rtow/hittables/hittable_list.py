@@ -4,21 +4,21 @@ from .. import Ray, Interval, Hittable, HitMat, AABB
 
 
 class HittableList(Hittable):
-    hittables: List[Hittable]
+    objects: List[Hittable]
     bbox: AABB
 
-    def __init__(self, hittables: List[Hittable] = []):
-        self.hittables = []
+    def __init__(self, objects: List[Hittable] = []):
+        self.objects = []
         self.bbox = AABB()
-        for hittable in hittables:
+        for hittable in objects:
             self.add(hittable)
 
     def clear(self):
-        self.hittables = []
+        self.objects = []
 
-    def add(self, hittable: Hittable):
-        self.hittables.append(hittable)
-        self.bbox = AABB.from_aabbs(self.bbox, hittable.bounding_box())
+    def add(self, object: Hittable):
+        self.objects.append(object)
+        self.bbox = AABB.from_aabbs(self.bbox, object.bounding_box())
 
     def bounding_box(self) -> AABB:
         return self.bbox
@@ -27,7 +27,7 @@ class HittableList(Hittable):
         hit: Optional[HitMat] = None
         closest_so_far = interval.max
 
-        for hittable in self.hittables:
+        for hittable in self.objects:
             candidate_hit = hittable.hit(r, Interval(interval.min, closest_so_far))
             if candidate_hit:
                 closest_so_far = candidate_hit.hit.t

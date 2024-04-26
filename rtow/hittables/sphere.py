@@ -12,6 +12,9 @@ class Sphere(Hittable):
     direction: Vec3
     bbox: AABB
 
+    def __repr__(self):
+        return f"<Sphere center={self.center0}>"
+
     def __init__(self, radius: float, mat: Material, center0: Point3, center1: Optional[Point3] = None):
         self.center0 = center0
         self.radius = max(0, radius)

@@ -6,6 +6,7 @@ from .camera import Camera
 from .vec3 import Vec3, Point3, Color
 from .hittables import Sphere, HittableList
 from .materials import Lambertian, Metal, Dielectric
+from .bvh import BVHNode
 
 
 if __name__ == "__main__":
@@ -49,7 +50,7 @@ if __name__ == "__main__":
     camera = Camera(
         aspect_ratio=16.0 / 9.0,
         image_width=400,
-        samples_per_pixel=10,
+        samples_per_pixel=100,
         max_depth=50,
 
         vfov=20,
@@ -61,8 +62,10 @@ if __name__ == "__main__":
         focus_dist=10.0,
     )
 
+    bvh = BVHNode.from_list(world)
+
     start = datetime.now()
-    buffer = camera.render(world)
+    buffer = camera.render(bvh)
     end = datetime.now()
 
     duration = (end - start).seconds
