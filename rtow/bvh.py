@@ -1,5 +1,3 @@
-from textwrap import dedent, indent
-from random import randint
 from typing import Callable, List, Optional
 
 from .aabb import AABB, empty
@@ -65,7 +63,7 @@ class BVHNode(Hittable):
             if hit_left and hit_right:
                 return hit_left if hit_left.hit.t < hit_right.hit.t else hit_right
 
-            return hit_left or hit_right
+            return hit_left if hit_left else hit_right
 
     def bounding_box(self) -> AABB:
         return self.bbox
