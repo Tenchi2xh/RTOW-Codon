@@ -1,3 +1,4 @@
+import os
 from typing import List, Tuple
 
 
@@ -6,7 +7,8 @@ def save(buffer: List[List[Tuple[UInt[8], UInt[8], UInt[8]]]], name: str):
     width = len(buffer[0])
     height = len(buffer)
 
-    with open(f"{name}.ppm", "w") as f:
+    os.system("mkdir -p renders")
+    with open(f"renders/{name}.ppm", "w") as f:
         f.write("P3\n")
         f.write(f"{width} {height} 255\n")
         for row in buffer:

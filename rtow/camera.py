@@ -106,10 +106,11 @@ class Camera:
         return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0)
 
     def status(self, i):
+        i += 1
         h = self.image_height
-        c = str(i + 1).rjust(len(str(h)))
-        p = "100" if i + 1 == h else f"{100.0 * (i + 1) / float(h):4.1f}"
-        print(f"\rRendering rows: {c} / {h} ({p}%)", end="", flush=True, file=sys.stderr)
+        c = str(i).rjust(len(str(h)))
+        p = "100" if i == h else f"{100.0 * i / float(h):4.1f}"
+        print(f"\rRendering rows: {c} / {h} ({p}%) ", end="", flush=True, file=sys.stderr)
 
     def render(self, world: Hittable) -> Buffer:
         b = Buffer(self.image_width, self.image_height)

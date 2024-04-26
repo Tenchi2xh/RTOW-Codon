@@ -1,12 +1,6 @@
 #!/bin/bash
 set -e
 
-if [ $# -eq 0 ]; then
-    codon build --release rtow/__main__.py
-    mv rtow/__main__ r
-    time ./r
-    echo
-    imgcat -W 2400px main.ppm
-else
-    time codon run --release "$1"
-fi
+python preprocess.py codon
+codon build --release rtow_codon/__main__.py
+time ./rtow_codon/__main__

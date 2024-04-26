@@ -1,5 +1,6 @@
 .DS_Store
 __pycache__/
 *.ppm
-r
-rtowp/
+rtow_codon/
+rtow_python/
+renders/

@@ -9,7 +9,7 @@ class Vec3:
     y: float
     z: float
 
-    def __init__(self, x: float, y: float, z: float):
+    def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         self.x, self.y, self.z = x, y, z
 
     def __repr__(self):
@@ -21,6 +21,9 @@ class Vec3:
     def __add__(self, other: Vec3):
         return Vec3(self.x + other.x, self.y + other.y, self.z + other.z)
 
+    def __radd__(self, other: Vec3):
+        return Vec3(self.x + other.x, self.y + other.y, self.z + other.z)
+
     def __sub__(self, other: Vec3):
         return Vec3(self.x - other.x, self.y - other.y, self.z - other.z)
 
@@ -28,6 +31,16 @@ class Vec3:
         return Vec3(self.x * other.x, self.y * other.y, self.z * other.z)
 
     def __mul__(self, scalar: float):
+        return Vec3(scalar * self.x, scalar * self.y, scalar * self.z)
+
+    # <python-only>
+    def __mul__(self, other):
+        if isinstance(other, Vec3):
+            return Vec3(self.x * other.x, self.y * other.y, self.z * other.z)
+        return Vec3(other * self.x, other * self.y, other * self.z)
+    # </python-only>
+
+    def __rmul__(self, scalar: float):
         return Vec3(scalar * self.x, scalar * self.y, scalar * self.z)
 
     def __truediv__(self, scalar: float):
@@ -69,7 +82,7 @@ class Vec3:
         return Vec3(random(), random(), random())
 
     @staticmethod
-    def random(min: float, max: float):
+    def random(min: float = 0, max: float = 0):
         return Vec3(uniform(min, max), uniform(min, max), uniform(min, max))
 
     @staticmethod
@@ -96,17 +109,6 @@ class Vec3:
         if on_unit_sphere.dot(normal) > 0.0:  # In the same hemisphere as the normal
             return on_unit_sphere
         return -on_unit_sphere
-
-
-@extend # type: ignore
-class int:
-    def __mul__(self, vec3: Vec3):
-        return vec3 * self
-
-@extend # type: ignore
-class float:
-    def __mul__(self, vec3: Vec3):
-        return vec3 * self
 
 
 Point3 = Vec3

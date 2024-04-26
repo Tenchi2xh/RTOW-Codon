@@ -6,7 +6,7 @@ from .. import Ray, Interval, Hittable, Hit, Material, HitMat
 class HittableList(Hittable):
     hittables: List[Hittable]
 
-    def __init__(self, hittables: List[Hittable]):
+    def __init__(self, hittables: List[Hittable] = []):
         self.hittables = hittables
 
     def clear(self):

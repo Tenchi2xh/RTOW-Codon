@@ -1,7 +1,7 @@
 from math import sqrt
 from typing import List, Tuple
 
-from . import ppm
+from .ppm import save
 from .interval import Interval
 from .vec3 import Color
 
@@ -24,7 +24,7 @@ class Buffer:
         self.buffer = [[Color() for x in range(w)] for y in range(h)]
 
     def save_ppm(self, name: str):
-        ppm.save(self.raw_buffer(), name)
+        save(self.raw_buffer(), name)
 
     def __getitem__(self, i: int) -> List[Color]:
         return self.buffer[i]

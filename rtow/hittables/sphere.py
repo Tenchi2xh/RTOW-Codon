@@ -11,20 +11,14 @@ class Sphere(Hittable):
     is_moving: bool
     direction: Vec3
 
-    # Stationary sphere
-    def __init__(self, center: Point3, radius: float, mat: Material):
-        self.center0 = center
-        self.radius = max(0, radius)
-        self.mat = mat
-        self.is_moving = False
-
-    # Moving sphere
-    def __init__(self, center0: Point3, center1: Point3, radius: float, mat: Material):
+    def __init__(self, radius: float, mat: Material, center0: Point3, center1: Optional[Point3] = None):
         self.center0 = center0
         self.radius = max(0, radius)
         self.mat = mat
-        self.is_moving = True
-        self.direction = center1 - center0
+        self.is_moving = False
+        if center1:
+            self.is_moving = True
+            self.direction = center1 - center0
 
     def center(self, time: float):
         return self.center0 + time * self.direction
