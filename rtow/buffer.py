@@ -1,7 +1,7 @@
 from math import sqrt
 from typing import List, Tuple
 
-import ppm
+from . import ppm
 from .interval import Interval
 from .vec3 import Color
 
