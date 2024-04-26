@@ -3,7 +3,7 @@ __pycache__/
 *.ppm
 rtow_codon/
 rtow_python/
-renders/
+renders*/
 out.stacks
 rtow_codon.svg
 flamegraph/
