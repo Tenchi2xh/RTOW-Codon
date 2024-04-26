@@ -49,8 +49,8 @@ if __name__ == "__main__":
     camera = Camera(
         aspect_ratio=16.0 / 9.0,
         image_width=400,
-        samples_per_pixel=10,
-        max_depth=5,
+        samples_per_pixel=100,
+        max_depth=50,
 
         vfov=20,
         lookfrom=Point3(13, 2, 3),
