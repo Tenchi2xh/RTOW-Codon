@@ -1,6 +1,9 @@
 # Ray Tracing in One Weekend
 _Codon edition_
 
+![](chapter1.png)
+_Final render of Chapter 1 at 100 samples per pixel, depth of 50, rendered in 41m16s on a 2019 MacBook_
+
 ## Goal
 
 I recently came across an interesting [blog post](https://16bpp.net/blog/post/the-performance-impact-of-cpp-final-keyword/) on Reddit which mentioned a [series of free online books about Ray Tracing](https://raytracing.github.io/). I've previously dabbled in homemade ray tracing multiple times and in various forms (Java, C++, GLSL), so the book was not really for me, but I skimmed through nonetheless.

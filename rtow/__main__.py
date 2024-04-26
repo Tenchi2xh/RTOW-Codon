@@ -1,54 +1,62 @@
 from math import cos, pi
+from random import random, uniform
 from .camera import Camera
 from .vec3 import Vec3, Point3, Color
 from .hittables import Sphere, HittableList
 from .materials import Lambertian, Metal, Dielectric
 
 
-def world1():
-    world = HittableList()
-
-    material_ground = Lambertian(Color(0.8, 0.8, 0.0))
-    material_center = Lambertian(Color(0.1, 0.2, 0.5))
-    material_left   = Dielectric(1.50)
-    material_bubble = Dielectric(1.00 / 1.50)
-    material_right  = Metal(Color(0.8, 0.6, 0.2), fuzz=1.0)
-
-    world.add(Sphere(Point3( 0.0, -100.5, -1.0), 100.0, material_ground))
-    world.add(Sphere(Point3( 0.0,    0.0, -1.2),   0.5, material_center))
-    world.add(Sphere(Point3(-1.0,    0.0, -1.0),   0.5, material_left))
-    world.add(Sphere(Point3(-1.0,    0.0, -1.0),   0.4, material_bubble))
-    world.add(Sphere(Point3( 1.0,    0.0, -1.0),   0.5, material_right))
-
-    return world
-
-
-def world2():
-    world = HittableList()
-    R = cos(pi / 4)
-
-    material_left  = Lambertian(Color(0, 0, 1))
-    material_right = Lambertian(Color(1, 0, 0))
-
-    world.add(Sphere(Point3(-R, 0, -1), R, material_left))
-    world.add(Sphere(Point3( R, 0, -1), R, material_right))
-
-    return world
-
-
 if __name__ == "__main__":
+    world = HittableList()
+
+    ground_material = Lambertian(Color(0.5, 0.5, 0.5))
+    world.add(Sphere(Point3(0, -1000, 0), 1000, ground_material))
+
+    for a in range(-11, 11):
+        for b in range(-11, 11):
+            choose_mat = random()
+            center = Point3(a + 0.9 * random(), 0.2, b + 0.9 * random())
+
+            if (center - Point3(4, 0.2, 0)).length() > 0.9:
+                if choose_mat < 0.8:
+                    # diffuse
+                    albedo = Color.random() * Color.random()
+                    sphere_material = Lambertian(albedo)
+                    world.add(Sphere(center, 0.2, sphere_material))
+                elif choose_mat < 0.95:
+                    # metal
+                    albedo = Color.random(0.5, 1)
+                    fuzz = uniform(0, 0.5)
+                    sphere_material = Metal(albedo, fuzz)
+                    world.add(Sphere(center, 0.2, sphere_material))
+                else:
+                    # glass
+                    sphere_material = Dielectric(1.5)
+                    world.add(Sphere(center, 0.2, sphere_material))
+
+    material1 = Dielectric(1.5)
+    world.add(Sphere(Point3(0, 1, 0), 1.0, material1))
+
+    material2 = Lambertian(Color(0.4, 0.2, 0.1))
+    world.add(Sphere(Point3(-4, 1, 0), 1.0, material2))
+
+    material3 = Metal(Color(0.7, 0.6, 0.5), 0.0)
+    world.add(Sphere(Point3(4, 1, 0), 1.0, material3))
+
     camera = Camera(
         aspect_ratio=16.0 / 9.0,
-        image_width=400,
+        image_width=1200,
         samples_per_pixel=100,
         max_depth=50,
+
         vfov=20,
-        lookfrom=Point3(-2, 2, 1),
-        lookat=Point3(0, 0, -1),
+        lookfrom=Point3(13, 2, 3),
+        lookat=Point3(0, 0, 0),
         vup=Vec3(0, 1, 0),
-        defocus_angle=10.0,
-        focus_dist=3.4,
+
+        defocus_angle=0.6,
+        focus_dist=10.0,
     )
 
-    buffer = camera.render(world1())
+    buffer = camera.render(world)
     buffer.save_ppm("main")

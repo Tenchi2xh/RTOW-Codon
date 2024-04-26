@@ -106,6 +106,8 @@ class Camera:
     def render(self, world: Hittable) -> Buffer:
         b = Buffer(self.image_width, self.image_height)
 
+        print(f"\rRendering rows: 0 / {self.image_height} (0%)", end="", flush=True)
+
         for j in range(self.image_height):
             row = []
             for i in range(self.image_width):
@@ -115,8 +117,14 @@ class Camera:
                     pixel_color += self.ray_color(r, self.max_depth, world)
 
                 row.append(self.pixel_samples_scale * pixel_color)
+            
+            print(
+                f"\rRendering rows: {j + 1} / {self.image_height} ({int(100.0 * (j + 1) / float(self.image_height))}%)",
+                end="", flush=True
+            )
             b[j] = row
 
+        print()
         return b
 
     def get_ray(self, i: int, j: int) -> Ray:
