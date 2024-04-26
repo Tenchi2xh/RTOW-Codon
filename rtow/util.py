@@ -4,6 +4,10 @@ from random import random
 from .vec3 import Vec3
 
 
+p_inf = float("+inf")
+m_inf = float("-inf")
+
+
 def degrees_to_radians(degrees: float):
     return degrees * pi / 180.0
 

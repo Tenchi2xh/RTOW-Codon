@@ -1,10 +1,12 @@
+from .util import p_inf, m_inf
+
 class Interval:
     min: float
     max: float
 
     def __init__(self):
-        self.min = float("-inf")
-        self.max = float("+inf")
+        self.min = m_inf
+        self.max = p_inf
 
     def __init__(self, min: float, max: float):
         self.min = min
@@ -26,5 +28,5 @@ class Interval:
             return self.max
         return x
 
-empty = Interval(float("+inf"), float("-inf"))
-universe = Interval(float("-inf"), float("+inf"))
+empty = Interval(p_inf, m_inf)
+universe = Interval(m_inf, p_inf)
