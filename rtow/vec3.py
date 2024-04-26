@@ -9,9 +9,6 @@ class Vec3:
     y: float
     z: float
 
-    def __init__(self):
-        self.x, self.y, self.z = 0, 0, 0
-
     def __init__(self, x: float, y: float, z: float):
         self.x, self.y, self.z = x, y, z
 

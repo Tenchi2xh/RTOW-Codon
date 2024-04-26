@@ -1,3 +1,4 @@
+import sys
 from math import tan
 
 from .util import degrees_to_radians, sample_square
@@ -103,11 +104,16 @@ class Camera:
         a = 0.5 * (unit_direction.y + 1.0)
         return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0)
 
+    def status(self, i):
+        h = self.image_height
+        c = str(i).rjust(len(str(h)))
+        p = "100" if i + 1 == h else f"{100.0 * (i + 1) / float(h):4.1f}"
+        print(f"\rRendering rows: {c} / {h} ({p}%)", end="", flush=True, file=sys.stderr)
+
     def render(self, world: Hittable) -> Buffer:
         b = Buffer(self.image_width, self.image_height)
 
-        print(f"\rRendering rows: 0 / {self.image_height} (0%)", end="", flush=True)
-
+        self.status(-1)
         for j in range(self.image_height):
             row = []
             for i in range(self.image_width):
@@ -117,11 +123,8 @@ class Camera:
                     pixel_color += self.ray_color(r, self.max_depth, world)
 
                 row.append(self.pixel_samples_scale * pixel_color)
-            
-            print(
-                f"\rRendering rows: {j + 1} / {self.image_height} ({int(100.0 * (j + 1) / float(self.image_height))}%)",
-                end="", flush=True
-            )
+    
+            self.status(j)        
             b[j] = row
 
         print()
