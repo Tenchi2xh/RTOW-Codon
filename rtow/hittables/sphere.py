@@ -1,7 +1,7 @@
 from math import sqrt
 from typing import Optional
 
-from .. import Point3, Ray, Interval, Hittable, Hit, Material, HitMat, Vec3
+from .. import Point3, Ray, Interval, Hittable, Hit, Material, HitMat, Vec3, AABB
 
 
 class Sphere(Hittable):
@@ -10,18 +10,35 @@ class Sphere(Hittable):
     mat: Material
     is_moving: bool
     direction: Vec3
+    bbox: AABB
 
     def __init__(self, radius: float, mat: Material, center0: Point3, center1: Optional[Point3] = None):
         self.center0 = center0
         self.radius = max(0, radius)
         self.mat = mat
-        self.is_moving = False
-        if center1:
+
+        rvec = Vec3(radius, radius, radius)
+
+        if center1 is None:
+            self.is_moving = False
+
+            rvec = Vec3(radius, radius, radius)
+            self.bbox = AABB.from_points(center0 - rvec, center0 + rvec)
+
+        else:
             self.is_moving = True
             self.direction = center1 - center0
 
+            box1 = AABB.from_points(center0 - rvec, center0 + rvec)
+            box2 = AABB.from_points(center1 - rvec, center1 + rvec)
+            self.bbox = AABB.from_aabbs(box1, box2)
+
+
     def center(self, time: float):
         return self.center0 + time * self.direction
+
+    def bounding_box(self) -> AABB:
+        return self.bbox
 
     def hit(self, r: Ray, interval: Interval) -> Optional[HitMat]:
         center = self.center(r.time) if self.is_moving else self.center0

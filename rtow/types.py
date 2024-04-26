@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 from .ray import Ray
 from .vec3 import Color, Point3, Vec3
 from .interval import Interval
+from .aabb import AABB
 
 
 class Hit:
@@ -44,4 +45,7 @@ class HitMat:
 
 class Hittable:
     def hit(self, r: Ray, interval: Interval) -> Optional[HitMat]:
+        assert False, "Calling abstract"
+
+    def bounding_box(self) -> AABB:
         assert False, "Calling abstract"
