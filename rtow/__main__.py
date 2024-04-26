@@ -1,6 +1,5 @@
 import os
 from datetime import datetime
-from math import cos, pi
 from random import random, uniform
 
 from .camera import Camera
@@ -62,10 +61,13 @@ if __name__ == "__main__":
         focus_dist=10.0,
     )
 
+    start = datetime.now()
     buffer = camera.render(world)
+    end = datetime.now()
 
-    timestamp = datetime.now().isoformat()
-    filename = f"{timestamp}_s{camera.samples_per_pixel}_d{camera.max_depth}"
+    duration = (end - start).seconds
+    timestamp = start.isoformat().replace("T", "-").replace(":", "").split(".")[0]
+    filename = f"{timestamp}_ssp={camera.samples_per_pixel}_md={camera.max_depth}_t={duration}s"
     buffer.save_ppm(filename)
 
     try:

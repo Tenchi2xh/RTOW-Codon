@@ -2,7 +2,9 @@
 _Codon edition_
 
 ![](chapter1.png)
-_Final render of Chapter 1 at 100 samples per pixel, depth of 50, rendered in 41m16s on a 2019 MacBook_
+_Final render of Chapter 1 at 100 samples per pixel, depth of 50, rendered in 41m16s[^1] on a 2019 MacBook_
+
+[^1]: PyPy took only half as much, doing it in 18m55s.
 
 ## Goal
 

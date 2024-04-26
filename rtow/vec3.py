@@ -82,7 +82,7 @@ class Vec3:
         return Vec3(random(), random(), random())
 
     @staticmethod
-    def random(min: float = 0, max: float = 0):
+    def random(min: float = 0, max: float = 1):
         return Vec3(uniform(min, max), uniform(min, max), uniform(min, max))
 
     @staticmethod
