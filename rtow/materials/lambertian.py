@@ -1,7 +1,7 @@
 from typing import Optional
 
 from .. import Ray, Color, Vec3
-from ..hittables import Hit
+from ..objects import Hit
 from .material import Material, Scatter
 
 

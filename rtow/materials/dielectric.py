@@ -3,7 +3,7 @@ from random import random
 from typing import Optional
 
 from .. import Ray, Color
-from ..hittables import Hit
+from ..objects import Hit
 from ..materials import Material, Scatter
 
 

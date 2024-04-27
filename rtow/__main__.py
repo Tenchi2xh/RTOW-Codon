@@ -4,7 +4,7 @@ from random import random, uniform
 
 from .camera import Camera
 from .vec3 import Vec3, Point3, Color
-from .hittables import Sphere, HittableList
+from .objects import Sphere, HittableList
 from .materials import Lambertian, Metal, Dielectric
 from .bvh import BVHNode
 

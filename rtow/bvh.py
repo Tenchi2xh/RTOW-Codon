@@ -3,7 +3,7 @@ from typing import Callable, List, Optional
 from .aabb import AABB, empty
 from .interval import Interval
 from .ray import Ray
-from .hittables import HitRecord, Hittable, HittableList
+from .objects import HitRecord, Hittable, HittableList
 
 
 class BVHNode(Hittable):

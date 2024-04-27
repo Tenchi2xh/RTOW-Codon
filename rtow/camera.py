@@ -5,7 +5,7 @@ from math import tan
 from .util import degrees_to_radians, sample_square, p_inf
 from .buffer import Buffer
 from .interval import Interval
-from .hittables import Hittable
+from .objects import Hittable
 from .ray import Ray
 from .vec3 import Color, Point3, Vec3
 

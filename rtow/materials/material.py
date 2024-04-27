@@ -1,7 +1,7 @@
 from typing import Optional
 
 from .. import Ray, Color
-from ..hittables import Hit
+from ..objects import Hit
 
 
 class Scatter:
