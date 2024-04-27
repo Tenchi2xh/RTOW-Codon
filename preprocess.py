@@ -40,11 +40,17 @@ def pythonize(lines):
         # TODO: More thorough
         lines[i] = line.replace("UInt[8]", "int")
 
+        # If a new block starts with no indentation, it means we left the class
+        if len(line) > 0 and not re.match("\s", line[0]):
+            class_name = None
+
+        type_annotation = fr"(\w+: {class_name})|(\w+\[.*{class_name}.*\])"
+
         # Codon supports type hints referring to the currently defined class,
         # Python only does if the type is quoted
         if line.startswith("class "):
             class_name = re.match(r"class (\w+)", line).group(1)
-        elif class_name and f": {class_name}" in line:
+        elif class_name and re.search(type_annotation, line) is not None:
             lines[i] = line.replace(class_name, f'"{class_name}"')
 
     return lines

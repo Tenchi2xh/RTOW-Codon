@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 from .aabb import AABB, empty
 from .interval import Interval
@@ -19,11 +19,12 @@ class BVHNode(Hittable):
         self.depth = depth
 
     @staticmethod
-    def from_list(list: HittableList):
+    def from_list(list: HittableList) -> Tuple[BVHNode, int]:
         return BVHNode.make_node(list.objects, 0, len(list.objects), 0)
 
     @staticmethod
-    def make_node(objects: List[Hittable], start: int, end: int, depth: int):
+    def make_node(objects: List[Hittable], start: int, end: int, depth: int) -> Tuple[BVHNode, int]:
+        # Book addition: total depth below the current node is also returned for debugging purposes
 
         # Build the bounding box of the span of source objects
         bbox = empty
@@ -34,6 +35,7 @@ class BVHNode(Hittable):
         sort_key: Callable[[Hittable], float] = lambda a: -a.bounding_box().axis_interval(axis).min
 
         object_span = end - start
+        child_depth1 = child_depth2 = depth
 
         if object_span == 1:
             left = right = objects[start]
@@ -43,11 +45,10 @@ class BVHNode(Hittable):
         else:
             objects[start:end] = sorted(objects[start:end], key=sort_key)
             mid = start + object_span // 2
-            left = BVHNode.make_node(objects, start, mid, depth + 1)
-            right = BVHNode.make_node(objects, mid, end, depth + 1)
+            left, child_depth1 = BVHNode.make_node(objects, start, mid, depth + 1)
+            right, child_depth2 = BVHNode.make_node(objects, mid, end, depth + 1)
 
-        return BVHNode(left, right, bbox, depth)
-
+        return BVHNode(left, right, bbox, depth), max(child_depth1, child_depth2)
 
     def hit(self, r: Ray, ray_t: Interval) -> Optional[HitRecord]:
         if not self.bbox.hit(r, ray_t):

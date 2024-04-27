@@ -5,9 +5,10 @@ from math import tan
 from .util import degrees_to_radians, sample_square, p_inf
 from .buffer import Buffer
 from .interval import Interval
-from .objects import Hittable
+from .objects import Hittable, HittableList
 from .ray import Ray
 from .vec3 import Color, Point3, Vec3
+from .bvh import BVHNode
 
 
 class Camera:
@@ -26,6 +27,7 @@ class Camera:
     defocus_angle: float        # Variation angle of rays through each pixel
     defocus_disk_u: Vec3        # Defocus disk horizontal radius
     defocus_disk_v: Vec3        # Defocus disk vertical radius
+    mode: str                   # "full" | "normals"
 
     def __init__(
             self,
@@ -39,9 +41,11 @@ class Camera:
             vup: Vec3 = Vec3(0, 1, 0),           # Camera-relative "up" direction
             defocus_angle: float = 0,            # Variation angle of rays through each pixel
             focus_dist: float = 10,              # Distance from camera lookfrom point to plane of perfect focus
+            mode: str = "full",                  # "full" | "normals"
         ):
         self.image_width = image_width
         self.samples_per_pixel = samples_per_pixel
+        self.mode = mode
 
         self.image_height = max(1, int(image_width / aspect_ratio))
         real_aspect_ratio = image_width / self.image_height
@@ -90,11 +94,10 @@ class Camera:
         # that surface will be ignored and the ray can escape
         rec = world.hit(r, Interval(0.001, p_inf))
 
-        # TODO: Flag to ignore materials and show normals
-        # if hit:
-        #     return 0.5 * (hit.normal + Color(1, 1, 1))
-
         if rec:
+            if self.mode == "normals":
+                return 0.5 * (rec.hit.normal + Color(1, 1, 1))
+
             scatter = rec.mat.scatter(r, rec.hit)
             if scatter:
                 return scatter.attenuation * self.ray_color(scatter.scattered, depth - 1, world)
@@ -105,24 +108,42 @@ class Camera:
         a = 0.5 * (unit_direction.y + 1.0)
         return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0)
 
+    def report(self, bvh_depth: int):
+        res1 = f"{self.image_width} x {self.image_height}"
+        res2 = f"({self.image_width * self.image_height / 1e6:3.1f}MP)"
+        bvh_info1 = f"{bvh_depth}"
+        bvh_info2 = f"({2**bvh_depth} elems)"
+        print(f"Resolution:        {res1:>14} {res2}")
+        print(f"BVH tree depth:    {bvh_info1:>14} {bvh_info2}")
+        print(f"Samples per pixel: {self.samples_per_pixel:14d}")
+        print(f"Max depth:         {self.max_depth:14d}")
+        print(f"Mode:              {self.mode:>14}")
+        print()
+
     def status(self, i):
         i += 1
         h = self.image_height
         c = str(i).rjust(len(str(h)))
-        p = "100" if i == h else f"{100.0 * i / float(h):4.1f}"
-        print(f"\rRendering rows: {c} / {h} ({p}%) ", end="", flush=True, file=sys.stderr)
+        p = i / float(h)
+        pp = "100" if i == h else f"{100 * p:4.1f}"
+        b0 = "#" * int(p * 20)
+        b1 = "-" * (20 - len(b0))
+        print(f"\rRendering rows: [{b0}{b1}] {c} / {h} ({pp}%) ", end="", flush=True, file=sys.stderr)
 
-    def render(self, world: Hittable) -> Buffer:
+    def render(self, world: HittableList) -> Buffer:
         b = Buffer(self.image_width, self.image_height)
+        bvh, depth = BVHNode.from_list(world)
 
+        self.report(depth)
         self.status(-1)
+
         for j in range(self.image_height):
             row = []
             for i in range(self.image_width):
                 pixel_color = Color(0, 0, 0)
                 for _ in range(self.samples_per_pixel):
                     r = self.get_ray(i, j)
-                    pixel_color += self.ray_color(r, self.max_depth, world)
+                    pixel_color += self.ray_color(r, self.max_depth, bvh)
 
                 row.append(self.pixel_samples_scale * pixel_color)
     

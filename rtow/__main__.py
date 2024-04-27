@@ -62,10 +62,8 @@ if __name__ == "__main__":
         focus_dist=10.0,
     )
 
-    bvh = BVHNode.from_list(world)
-
     start = datetime.now()
-    buffer = camera.render(bvh)
+    buffer = camera.render(world)
     end = datetime.now()
 
     duration = (end - start).seconds
@@ -74,6 +72,7 @@ if __name__ == "__main__":
     buffer.save_ppm(filename)
 
     try:
+        print()
         os.system(f"imgcat -W 2400px renders/{filename}.ppm")
     except:
         pass
