@@ -12,6 +12,11 @@ class Vec3:
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         self.x, self.y, self.z = x, y, z
 
+    def axis(self, n: int):
+        if n == 1: return self.y
+        if n == 2: return self.z
+        return self.x
+
     def __repr__(self):
         return f"<{self.x}, {self.y}, {self.z}>"
 

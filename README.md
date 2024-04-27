@@ -1,10 +1,48 @@
 # Ray Tracing in One Weekend
 _Codon edition_
 
-![](chapter1.png)
-_Final render of Chapter 1 at 100 samples per pixel, depth of 50, rendered in 41m16s[^1] on a 2019 MacBook_
+![](book1.png)
+_Final render of Book 1 at 100 samples per pixel, depth of 50, width of 1200, rendered in 41:16 using Codon on a 2019 2.6 GHz Core i7 MacBook_
 
-[^1]: PyPy took only half as much, doing it in 18m55s.
+## Performance benchmarks
+
+The scene being tested is just before Chapter 4 of Book 2 starts:
+
+![](book2chapter3.png)
+_100 samples per pixel, depth of 50, width of 1200, BVH enabled, rendered in 3:03 using Codon_
+
+Renders are done on a 2019 MacBook with a 2.6 GHz Intel Core i7
+
+| Setting            | Value     |
+| ------------------ | --------: |
+| Width              | 400       |
+| Samples per pixels | 100       |
+| Max depth          | 50        |
+| Motion blur        | ON        |
+
+### Without BVH
+
+Commit: `7ced295` with BVH disabled
+
+| Implementation | Render time | Relative |
+| -------------- | ----------: | -------: |
+| PyPy           | 04:50       |     1.0x |
+| Codon          | 11:05       |     2.3x |
+| Python         | DNF         |      inf |
+
+For some reason, PyPy beats Codon when BVH is disabled.
+
+### With BVH
+
+Commit: `7ced295`
+
+| Implementation | Render time | Relative | Previous best |
+| -------------- | ----------: | -------: | ------------: |
+| Codon          | 00:19       |     1.0x |        0.06x  |
+| PyPy           | 02:44       |     8.6x |        0.56x  |
+| Python         | 26:09       |    82.6x |        5.41x  |
+
+BVH provides a huge boost in performance, and awakens Codon's power.
 
 ## Goal
 
@@ -27,3 +65,14 @@ To run the profiling script `profile.sh`, first clone the [FlameGraph](https://g
 ```
 git clone git@github.com:brendangregg/FlameGraph.git flamegraph
 ```
+
+## Codon
+
+TODO: Write
+
+- Inheritance still shaky
+- Errors are not so nice
+- Runtime errors are worse, but running the same code in PyPy or Python helps a lot
+- Performance is weird
+- @par doesn't help
+- Mutually referencing classes don't work

@@ -4,13 +4,17 @@ class Interval:
     min: float
     max: float
 
-    def __init__(self):
-        self.min = m_inf
-        self.max = p_inf
-
-    def __init__(self, min: float, max: float):
+    def __init__(self, min: float = m_inf, max: float = p_inf):
         self.min = min
         self.max = max
+
+    @staticmethod
+    def from_intervals(a: Interval, b: Interval):
+        """Create the interval tightly enclosing the two input intervals."""
+        return Interval(
+            min=a.min if a.min <= b.min else b.min,
+            max=a.max if a.max >= b.max else b.max,
+        )
 
     def size(self):
         return self.max - self.min
@@ -27,6 +31,11 @@ class Interval:
         elif x > self.max:
             return self.max
         return x
+
+    def expand(self, delta: float):
+        padding = delta / 2
+        return Interval(self.min - padding, self.max + padding)
+
 
 empty = Interval(p_inf, m_inf)
 universe = Interval(m_inf, p_inf)
