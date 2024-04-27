@@ -66,8 +66,8 @@ def checkered_spheres():
 
     checker = Checker.from_colors(0.32, Color(0.2, 0.3, 0.1), Color.all(0.9))
 
-    world.add(Sphere(Point3(0, -10, 0), 10, Lambertian(checker)))
-    world.add(Sphere(Point3(0,  10, 0), 10, Lambertian(checker)))
+    world.add(Sphere(10, Lambertian(checker), Point3(0, -10, 0)))
+    world.add(Sphere(10, Lambertian(checker), Point3(0,  10, 0)))
 
     camera = Camera(
         vfov=20,
