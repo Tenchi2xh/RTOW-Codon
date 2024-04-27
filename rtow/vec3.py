@@ -12,6 +12,10 @@ class Vec3:
     def __init__(self, x: float = 0, y: float = 0, z: float = 0):
         self.x, self.y, self.z = x, y, z
 
+    @staticmethod
+    def all(v: float):
+        return Vec3(v, v, v)
+
     def axis(self, n: int):
         if n == 1: return self.y
         if n == 2: return self.z
