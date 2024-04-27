@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from random import random, uniform
+from typing import Callable, List, Tuple
 
 from .tracer import Tracer, Camera
 from .vec3 import Vec3, Point3, Color
@@ -60,8 +61,30 @@ def bouncing_spheres():
     return world, camera
 
 
+def checkered_spheres():
+    world = HittableList()
+
+    checker = Checker.from_colors(0.32, Color(0.2, 0.3, 0.1), Color.all(0.9))
+
+    world.add(Sphere(Point3(0, -10, 0), 10, Lambertian(checker)))
+    world.add(Sphere(Point3(0,  10, 0), 10, Lambertian(checker)))
+
+    camera = Camera(
+        vfov=20,
+        lookfrom=Point3(13, 2, 3),
+        lookat=Point3(0, 0, 0),
+        vup=Vec3(0, 1, 0),
+        defocus_angle=0,
+    )
+
+    return world, camera
+
+
 if __name__ == "__main__":
-    world, camera = bouncing_spheres()
+    world, camera = (
+        bouncing_spheres,
+        checkered_spheres,
+    )[1]()
 
     tracer = Tracer(
         camera=camera,
