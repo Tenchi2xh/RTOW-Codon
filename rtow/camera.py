@@ -5,7 +5,7 @@ from math import tan
 from .util import degrees_to_radians, sample_square, p_inf
 from .buffer import Buffer
 from .interval import Interval
-from .types import Hittable
+from .hittables import Hittable
 from .ray import Ray
 from .vec3 import Color, Point3, Vec3
 
@@ -88,14 +88,14 @@ class Camera:
         # Min distance is 0.001 to avoid floating point precision errors
         # That way if the ray starts just below a surface,
         # that surface will be ignored and the ray can escape
-        hit_mat = world.hit(r, Interval(0.001, p_inf))
+        rec = world.hit(r, Interval(0.001, p_inf))
 
         # TODO: Flag to ignore materials and show normals
         # if hit:
         #     return 0.5 * (hit.normal + Color(1, 1, 1))
 
-        if hit_mat:
-            scatter = hit_mat.mat.scatter(r, hit_mat.hit)
+        if rec:
+            scatter = rec.mat.scatter(r, rec.hit)
             if scatter:
                 return scatter.attenuation * self.ray_color(scatter.scattered, depth - 1, world)
             return Color(0, 0, 0)

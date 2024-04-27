@@ -3,8 +3,7 @@ from typing import Callable, List, Optional
 from .aabb import AABB, empty
 from .interval import Interval
 from .ray import Ray
-from .types import HitMat, Hittable
-from .hittables.hittable_list import HittableList
+from .hittables import HitRecord, Hittable, HittableList
 
 
 class BVHNode(Hittable):
@@ -50,7 +49,7 @@ class BVHNode(Hittable):
         return BVHNode(left, right, bbox, depth)
 
 
-    def hit(self, r: Ray, ray_t: Interval) -> Optional[HitMat]:
+    def hit(self, r: Ray, ray_t: Interval) -> Optional[HitRecord]:
         if not self.bbox.hit(r, ray_t):
             return None
         else:

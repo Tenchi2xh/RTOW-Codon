@@ -1,7 +1,10 @@
 from math import sqrt
 from typing import Optional
 
-from .. import Point3, Ray, Interval, Hittable, Hit, Material, HitMat, Vec3, AABB
+from .. import Point3, Ray, Interval, Vec3, AABB
+from .hit import Hit
+from .hittable import HitRecord, Hittable
+from ..materials import Material
 
 
 class Sphere(Hittable):
@@ -43,7 +46,7 @@ class Sphere(Hittable):
     def bounding_box(self) -> AABB:
         return self.bbox
 
-    def hit(self, r: Ray, interval: Interval) -> Optional[HitMat]:
+    def hit(self, r: Ray, interval: Interval) -> Optional[HitRecord]:
         center = self.center(r.time) if self.is_moving else self.center0
         oc = center - r.origin
         a = r.direction.length_squared()
@@ -64,7 +67,7 @@ class Sphere(Hittable):
                 return None
 
         p = r.at(root)
-        return HitMat(
+        return HitRecord(
             hit=Hit(
                 p=p,
                 t=root,

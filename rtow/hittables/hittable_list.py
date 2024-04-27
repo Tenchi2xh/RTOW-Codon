@@ -1,6 +1,7 @@
 from typing import List, Optional
 
-from .. import Ray, Interval, Hittable, HitMat, AABB
+from .. import Ray, Interval, AABB
+from .hittable import Hittable, HitRecord
 
 
 class HittableList(Hittable):
@@ -23,14 +24,14 @@ class HittableList(Hittable):
     def bounding_box(self) -> AABB:
         return self.bbox
 
-    def hit(self, r: Ray, interval: Interval) -> Optional[HitMat]:
-        hit: Optional[HitMat] = None
+    def hit(self, r: Ray, interval: Interval) -> Optional[HitRecord]:
+        rec: Optional[HitRecord] = None
         closest_so_far = interval.max
 
         for hittable in self.objects:
-            candidate_hit = hittable.hit(r, Interval(interval.min, closest_so_far))
-            if candidate_hit:
-                closest_so_far = candidate_hit.hit.t
-                hit = candidate_hit
+            candidate_rec = hittable.hit(r, Interval(interval.min, closest_so_far))
+            if candidate_rec:
+                closest_so_far = candidate_rec.hit.t
+                rec = candidate_rec
 
-        return hit
+        return rec

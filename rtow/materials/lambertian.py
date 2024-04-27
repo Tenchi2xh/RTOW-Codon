@@ -1,6 +1,8 @@
 from typing import Optional
 
-from .. import Ray, Color, Vec3, Material, Scatter, Hit
+from .. import Ray, Color, Vec3
+from ..hittables import Hit
+from .material import Material, Scatter
 
 
 class Lambertian(Material):

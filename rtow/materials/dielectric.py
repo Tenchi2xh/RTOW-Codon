@@ -2,7 +2,9 @@ from math import sqrt
 from random import random
 from typing import Optional
 
-from .. import Ray, Color, Material, Scatter, Hit, Vec3
+from .. import Ray, Color
+from ..hittables import Hit
+from ..materials import Material, Scatter
 
 
 def reflectance(cosine: float, refractive_index: float):

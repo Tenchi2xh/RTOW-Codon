@@ -1,6 +1,8 @@
 from typing import Optional
 
-from .. import Ray, Color, Material, Scatter, Hit, Vec3
+from .. import Ray, Color, Vec3
+from ..hittables import Hit
+from .material import Material, Scatter
 
 
 class Metal(Material):
