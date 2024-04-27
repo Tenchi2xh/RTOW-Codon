@@ -1,15 +1,21 @@
 from typing import Optional
 
+
 from .. import Ray, Color, Vec3
 from ..objects import Hit
+from ..textures import Texture, SolidColor
 from .material import Material, Scatter
 
 
 class Lambertian(Material):
-    albedo: Color
+    texture: Texture
 
-    def __init__(self, albedo: Color = Color(0, 0, 0)):
-        self.albedo = albedo
+    def __init__(self, texture: Texture):
+        self.texture = texture
+
+    @staticmethod
+    def from_color(albedo: Color = Color(0, 0, 0)):
+        return Lambertian(SolidColor(albedo))
 
     def scatter(self, r_in: Ray, hit: Hit) -> Optional[Scatter]:
         scatter_direction = hit.normal + Vec3.random_unit()
@@ -21,5 +27,5 @@ class Lambertian(Material):
 
         return Scatter(
             scattered=Ray(hit.p, scatter_direction, r_in.time),
-            attenuation=self.albedo,
+            attenuation=self.texture.value(hit.u, hit.v, hit.p),
         )

@@ -2,18 +2,18 @@ import os
 from datetime import datetime
 from random import random, uniform
 
-from .camera import Camera
+from .tracer import Tracer, Camera
 from .vec3 import Vec3, Point3, Color
 from .objects import Sphere, HittableList
 from .materials import Lambertian, Metal, Dielectric
-from .bvh import BVHNode
+from .textures import Checker
 
 
-if __name__ == "__main__":
+def bouncing_spheres():
     world = HittableList()
 
-    ground_material = Lambertian(Color(0.5, 0.5, 0.5))
-    world.add(Sphere(1000, ground_material, Point3(0, -1000, 0)))
+    checker = Checker.from_colors(0.32, Color(0.2, 0.3, 0.1), Color.all(0.9))
+    world.add(Sphere(1000, Lambertian(checker), Point3(0, -1000, 0)))
 
     for a in range(-11, 11):
         for b in range(-11, 11):
@@ -24,7 +24,7 @@ if __name__ == "__main__":
                 if choose_mat < 0.8:
                     # diffuse
                     albedo = Color.random() * Color.random()
-                    sphere_material = Lambertian(albedo)
+                    sphere_material = Lambertian.from_color(albedo)
                     center2 = center + Vec3(0, uniform(0, 0.5), 0)
                     world.add(Sphere(0.2, sphere_material, center, center2))
                 elif choose_mat < 0.95:
@@ -41,18 +41,13 @@ if __name__ == "__main__":
     material1 = Dielectric(1.5)
     world.add(Sphere(1.0, material1, Point3(0, 1, 0)))
 
-    material2 = Lambertian(Color(0.4, 0.2, 0.1))
+    material2 = Lambertian.from_color(Color(0.4, 0.2, 0.1))
     world.add(Sphere(1.0, material2, Point3(-4, 1, 0)))
 
     material3 = Metal(Color(0.7, 0.6, 0.5), 0.0)
     world.add(Sphere(1.0, material3, Point3(4, 1, 0)))
 
     camera = Camera(
-        aspect_ratio=16.0 / 9.0,
-        image_width=400,
-        samples_per_pixel=100,
-        max_depth=50,
-
         vfov=20,
         lookfrom=Point3(13, 2, 3),
         lookat=Point3(0, 0, 0),
@@ -62,13 +57,27 @@ if __name__ == "__main__":
         focus_dist=10.0,
     )
 
+    return world, camera
+
+
+if __name__ == "__main__":
+    world, camera = bouncing_spheres()
+
+    tracer = Tracer(
+        camera=camera,
+        aspect_ratio=16.0 / 9.0,
+        image_width=400,
+        samples_per_pixel=100,
+        max_depth=50,
+    )
+
     start = datetime.now()
-    buffer = camera.render(world)
+    buffer = tracer.render(world)
     end = datetime.now()
 
     duration = (end - start).seconds
     timestamp = start.isoformat().replace("T", "-").replace(":", "").split(".")[0]
-    filename = f"{timestamp}_ssp={camera.samples_per_pixel}_md={camera.max_depth}_t={duration}s"
+    filename = f"{timestamp}_ssp={tracer.samples_per_pixel}_md={tracer.max_depth}_t={duration}s"
     buffer.save_ppm(filename)
 
     try:
