@@ -141,6 +141,7 @@ class Camera:
             row = []
             for i in range(self.image_width):
                 pixel_color = Color(0, 0, 0)
+                # @par(ordered=False, num_threads=6)
                 for _ in range(self.samples_per_pixel):
                     r = self.get_ray(i, j)
                     pixel_color += self.ray_color(r, self.max_depth, bvh)

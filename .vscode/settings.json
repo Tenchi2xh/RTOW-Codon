@@ -1,0 +1,12 @@
+{
+    "files.exclude": {
+        "*.png": true,
+        "*.svg": true,
+        "**/__pycache__": true,
+        "flamegraph/": true,
+        "out.stacks": true,
+        "renders*/": true,
+        "rtow_codon/": true,
+        "rtow_python/": true
+    }
+}
