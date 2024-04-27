@@ -76,3 +76,17 @@ TODO: Write
 - Performance is weird
 - @par doesn't help
 - Mutually referencing classes don't work
+
+## Improvement Ideas
+
+NOTE: Mark every non-book addition clearly
+
+- Orthograpgic camera
+    - Instead of projecting all the rays from one single point (or the defocus disks), have a "camera plane" that is parallel to the focal plane, with identical sized pixels, and each pixel's ray would start in its corresponding pixel camera plane. Defocus can be done on a disk around that camera plane's pixel
+- Instead of a single color passed to the camera as background color, make a Skybox class that takes a ray and returns a color. This way we can have both the single color background and the original sky gradient
+    - This means we can also implement image skyboxes
+- After implementing quads, also implement:
+    - Infinite plane
+    - Disks
+    - Triangles
+    - Billboard images with transparency
