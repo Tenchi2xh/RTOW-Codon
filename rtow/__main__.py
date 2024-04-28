@@ -7,7 +7,7 @@ from .tracer import Tracer, Camera
 from .vec3 import Vec3, Point3, Color
 from .objects import Sphere, HittableList
 from .materials import Lambertian, Metal, Dielectric
-from .textures import Checker
+from .textures import Checker, ImageTexture
 
 
 def bouncing_spheres():
@@ -74,6 +74,28 @@ def checkered_spheres():
         lookfrom=Point3(13, 2, 3),
         lookat=Point3(0, 0, 0),
         vup=Vec3(0, 1, 0),
+
+        defocus_angle=0,
+    )
+
+    return world, camera
+
+
+def earth():
+    world = HittableList()
+
+    earth_texture = ImageTexture("images/earthmap.jpg")
+    earth_surface = Lambertian(earth_texture)
+    globe = Sphere(2, earth_surface, Point3(0, 0, 0))
+
+    world.add(globe)
+
+    camera = Camera(
+        vfov=20,
+        lookfrom=Point3(0, 0, 12),
+        lookat=Point3(0, 0, 0),
+        vup=Vec3(0, 1, 0),
+
         defocus_angle=0,
     )
 
@@ -84,7 +106,8 @@ if __name__ == "__main__":
     world, camera = (
         bouncing_spheres,
         checkered_spheres,
-    )[1]()
+        earth,
+    )[2]()
 
     tracer = Tracer(
         camera=camera,

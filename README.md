@@ -58,6 +58,18 @@ You'll need a development build of Codon, as the latest release (v0.16.3) is abo
 
 Install Codon normally by following the official instructions, then go to [Codon's CI builds](https://github.com/exaloop/codon/actions/workflows/ci.yml), click the latest build, go on the build corresponding to your OS, expand the "Upload Artifacts" step and download the link at the bottom of the log. Extract all the folders (`bin`, `include`, `lib` and `python`) in `~/.codon/` and you should be good to go.
 
+You'll also need Python 3 and [Pillow](https://pillow.readthedocs.io/en/stable/), which is used to load image textures. The built Codon binary will call Python at runtime:
+
+```bash
+pip install Pillow
+```
+
+If you want to run the project using PyPy, you'll also need to install Pillow there:
+
+```bash
+pypy3 -m pip install Pillow
+```
+
 ### Optional
 
 To run the profiling script `profile.sh`, first clone the [FlameGraph](https://github.com/brendangregg/FlameGraph) repo:

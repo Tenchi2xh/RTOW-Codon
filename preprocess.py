@@ -32,7 +32,7 @@ def remove_blocks(lines: List[str], current_mode: str):
 
 def pythonize(lines):
     # Remove @par decorators
-    lines = [line for line in lines if not re.match(r"\s*@par", line)]
+    lines = [line for line in lines if not re.match(r"\s*@(par|python)", line)]
 
     class_name = None
     for i, line in enumerate(lines):

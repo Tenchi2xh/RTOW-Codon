@@ -67,7 +67,8 @@ class Sphere(Hittable):
                 return None
 
         p = r.at(root)
-        u, v = Sphere.get_uv(p)
+        outward_normal = (p - center) / self.radius
+        u, v = Sphere.get_uv(outward_normal)
 
         return HitRecord(
             hit=Hit(
@@ -75,7 +76,7 @@ class Sphere(Hittable):
                 t=root,
                 u=u,
                 v=v,
-                outward_normal=(p - center) / self.radius,
+                outward_normal=outward_normal,
                 r=r,
             ),
             mat=self.mat
