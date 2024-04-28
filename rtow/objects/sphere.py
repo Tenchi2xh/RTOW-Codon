@@ -1,5 +1,5 @@
-from math import sqrt
-from typing import Optional
+from math import acos, atan2, pi, sqrt
+from typing import Optional, Tuple
 
 from .. import Point3, Ray, Interval, Vec3, AABB
 from .hit import Hit
@@ -67,12 +67,33 @@ class Sphere(Hittable):
                 return None
 
         p = r.at(root)
+        u, v = Sphere.get_uv(p)
+
         return HitRecord(
             hit=Hit(
                 p=p,
                 t=root,
+                u=u,
+                v=v,
                 outward_normal=(p - center) / self.radius,
                 r=r,
             ),
             mat=self.mat
         )
+
+    @staticmethod
+    def get_uv(p: Point3) -> Tuple[float, float]:
+        # p: a given point on the sphere of radius one, centered at the origin
+        # u: returned value [0,1] of angle around the Y axis from X=-1
+        # v: returned value [0,1] of angle from Y=-1 to Y=+1
+        #     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
+        #     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
+        #     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
+
+        theta = acos(-p.y)
+        phi = atan2(-p.z, p.x) + pi
+
+        u = phi / (2 * pi)
+        v = theta / pi
+
+        return u, v
