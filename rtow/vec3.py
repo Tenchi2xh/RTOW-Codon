@@ -121,7 +121,6 @@ class Vec3:
 
 
 Point3 = Vec3
-Color = Vec3
 
 
 if __name__ == "__main__":

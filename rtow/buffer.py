@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 from .ppm import save
 from .interval import Interval
-from .vec3 import Color
+from .color import Color, black
 
 
 intensity = Interval(0.000, 0.999)
@@ -21,7 +21,7 @@ class Buffer:
     def __init__(self, w: int, h: int):
         self.w = w
         self.h = h
-        self.buffer = [[Color() for x in range(w)] for y in range(h)]
+        self.buffer = [[black for x in range(w)] for y in range(h)]
 
     def save_ppm(self, name: str):
         save(self.raw_buffer(), name)

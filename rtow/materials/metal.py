@@ -2,6 +2,7 @@ from typing import Optional
 
 from .. import Ray, Color, Vec3
 from ..objects import Hit
+from ..color import black
 from .material import Material, Scatter
 
 
@@ -9,7 +10,7 @@ class Metal(Material):
     albedo: Color
     fuzz: float
 
-    def __init__(self, albedo: Color = Color(0, 0, 0), fuzz: float = 0.0):
+    def __init__(self, albedo: Color = black, fuzz: float = 0.0):
         self.albedo = albedo
         self.fuzz = fuzz
 

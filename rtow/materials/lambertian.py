@@ -4,6 +4,7 @@ from typing import Optional
 from .. import Ray, Color, Vec3
 from ..objects import Hit
 from ..textures import Texture, SolidColor
+from ..color import black
 from .material import Material, Scatter
 
 
@@ -14,7 +15,7 @@ class Lambertian(Material):
         self.texture = texture
 
     @staticmethod
-    def from_color(albedo: Color = Color(0, 0, 0)):
+    def from_color(albedo: Color = black):
         return Lambertian(SolidColor(albedo))
 
     def scatter(self, r_in: Ray, hit: Hit) -> Optional[Scatter]:

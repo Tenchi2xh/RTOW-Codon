@@ -7,7 +7,8 @@ from .buffer import Buffer
 from .interval import Interval
 from .objects import Hittable, HittableList
 from .ray import Ray
-from .vec3 import Color, Point3, Vec3
+from .vec3 import Point3, Vec3
+from .color import Color, black, white
 from .bvh import BVHNode
 from .camera import Camera
 
@@ -83,7 +84,7 @@ class Tracer:
     def ray_color(self, r: Ray, depth: int, world: Hittable) -> Color:
         # If we've exceeded the ray bounce limit, no more light is gathered
         if depth <= 0:
-            return Color(0, 0, 0)
+            return black
 
         # Min distance is 0.001 to avoid floating point precision errors
         # That way if the ray starts just below a surface,
@@ -92,12 +93,12 @@ class Tracer:
 
         if rec:
             if self.mode == "normals":
-                return 0.5 * (rec.hit.normal + Color(1, 1, 1))
+                return 0.5 * (rec.hit.normal + white)
 
             scatter = rec.mat.scatter(r, rec.hit)
             if scatter:
                 return scatter.attenuation * self.ray_color(scatter.scattered, depth - 1, world)
-            return Color(0, 0, 0)
+            return black
 
         # Sky
         unit_direction = r.direction.unit()
@@ -136,7 +137,7 @@ class Tracer:
         for j in range(self.image_height):
             row = []
             for i in range(self.image_width):
-                pixel_color = Color(0, 0, 0)
+                pixel_color = black
                 for _ in range(self.samples_per_pixel):
                     r = self.get_ray(i, j)
                     pixel_color += self.ray_color(r, self.max_depth, bvh)

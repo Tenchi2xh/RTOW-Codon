@@ -4,7 +4,8 @@ from random import random, uniform
 from typing import Callable, List, Tuple
 
 from .tracer import Tracer, Camera
-from .vec3 import Vec3, Point3, Color
+from .vec3 import Vec3, Point3
+from .color import Color
 from .objects import Sphere, HittableList
 from .materials import Lambertian, Metal, Dielectric
 from .textures import Checker
@@ -13,7 +14,7 @@ from .textures import Checker
 def bouncing_spheres():
     world = HittableList()
 
-    checker = Checker.from_colors(0.32, Color(0.2, 0.3, 0.1), Color.all(0.9))
+    checker = Checker.from_colors(0.32, Color(0.2, 0.3, 0.1), Color.gray(0.9))
     world.add(Sphere(1000, Lambertian(checker), Point3(0, -1000, 0)))
 
     for a in range(-11, 11):
@@ -64,7 +65,7 @@ def bouncing_spheres():
 def checkered_spheres():
     world = HittableList()
 
-    checker = Checker.from_colors(0.32, Color(0.2, 0.3, 0.1), Color.all(0.9))
+    checker = Checker.from_colors(0.32, Color(0.2, 0.3, 0.1), Color.gray(0.9))
 
     world.add(Sphere(10, Lambertian(checker), Point3(0, -10, 0)))
     world.add(Sphere(10, Lambertian(checker), Point3(0,  10, 0)))
