@@ -8,6 +8,7 @@ class Camera:
     vup: Vec3             # Camera-relative "up" direction
     defocus_angle: float  # Variation angle of rays through each pixel
     focus_dist: float     # Distance from camera lookfrom point to plane of perfect focus
+    mode: str             # "perspective" | "orthographic"
 
     def __init__(
             self,
@@ -17,6 +18,7 @@ class Camera:
             vup: Vec3 = Vec3(0, 1, 0),
             defocus_angle: float = 0,
             focus_dist: float = 10,
+            mode: str = "perspective",
         ):
         self.vfov = vfov
         self.lookfrom = lookfrom
@@ -24,3 +26,4 @@ class Camera:
         self.vup = vup
         self.defocus_angle = defocus_angle
         self.focus_dist = focus_dist
+        self.mode = mode

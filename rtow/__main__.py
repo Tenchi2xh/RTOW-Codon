@@ -61,6 +61,12 @@ def bouncing_spheres():
     return world, camera
 
 
+def bouncing_spheres_ortho():
+    world, camera = bouncing_spheres()
+    camera.mode = "orthographic"
+    return world, camera
+
+
 def checkered_spheres():
     world = HittableList()
 
@@ -105,9 +111,10 @@ def earth():
 if __name__ == "__main__":
     world, camera = (
         bouncing_spheres,
+        bouncing_spheres_ortho,
         checkered_spheres,
         earth,
-    )[2]()
+    )[1]()
 
     tracer = Tracer(
         camera=camera,

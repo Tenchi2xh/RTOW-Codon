@@ -25,10 +25,12 @@ class Tracer:
     u: Vec3                     # Camera frame basis vectors
     v: Vec3                     #
     w: Vec3                     #
+    focus_dist: float           # Distance from camera lookfrom point to plane of perfect focus
     defocus_angle: float        # Variation angle of rays through each pixel
     defocus_disk_u: Vec3        # Defocus disk horizontal radius
     defocus_disk_v: Vec3        # Defocus disk vertical radius
-    mode: str                   # "full" | "normals"
+    render_mode: str            # "full" | "normals"
+    camera_mode: str            # "perspective" | "orthographic"
 
     def __init__(
             self,
@@ -37,17 +39,19 @@ class Tracer:
             image_width: int = 100,
             samples_per_pixel: int = 10,
             max_depth: int = 10,
-            mode: str = "full",
+            render_mode: str = "full",
         ):
         self.image_width = image_width
         self.samples_per_pixel = samples_per_pixel
-        self.mode = mode
+        self.render_mode = render_mode
+        self.camera_mode = camera.mode
 
         self.image_height = max(1, int(image_width / aspect_ratio))
         real_aspect_ratio = image_width / self.image_height
         self.pixel_samples_scale = 1.0 / samples_per_pixel
 
         self.center = camera.lookfrom
+        self.focus_dist = camera.focus_dist
         self.max_depth = max_depth
 
         self.defocus_angle = camera.defocus_angle
@@ -91,7 +95,7 @@ class Tracer:
         rec = world.hit(r, Interval(0.001, p_inf))
 
         if rec:
-            if self.mode == "normals":
+            if self.render_mode == "normals":
                 return 0.5 * (rec.hit.normal + Color(1, 1, 1))
 
             scatter = rec.mat.scatter(r, rec.hit)
@@ -113,7 +117,7 @@ class Tracer:
         print(f"BVH tree depth:    {bvh_info1:>14} {bvh_info2}")
         print(f"Samples per pixel: {self.samples_per_pixel:14d}")
         print(f"Max depth:         {self.max_depth:14d}")
-        print(f"Mode:              {self.mode:>14}")
+        print(f"Mode:              {self.render_mode:>14}")
         print()
 
     def status(self, i):
@@ -162,8 +166,19 @@ class Tracer:
             ((j + offset.y) * self.pixel_delta_v)
         )
 
-        ray_origin = self.center if self.defocus_angle <= 0 else self.defocus_disk_sample()
+        if self.camera_mode == "perspective":
+            ray_origin = self.center
+        else:
+            # Not in book: orthographic camera
+            # Rays are all parallel to the -w direction instead of coming from a single point
+            # Imagine another focal plane but where the camera is, with the same size as the focal plane
+            ray_origin = pixel_sample + (self.w * self.focus_dist)
+
+        if self.defocus_angle > 0:
+            ray_origin += self.defocus_disk_sample()
+
         ray_direction = pixel_sample - ray_origin
+
         ray_time = random()
 
         return Ray(
@@ -175,4 +190,4 @@ class Tracer:
     def defocus_disk_sample(self):
         """Returns a random point in the camera defocus disk."""
         p = Vec3.random_in_unit_disk()
-        return self.center + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
+        return (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
