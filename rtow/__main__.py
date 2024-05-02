@@ -1,13 +1,12 @@
 import os
 from datetime import datetime
 from random import random, uniform
-from typing import Callable, List, Tuple
 
 from .tracer import Tracer, Camera
 from .vec3 import Vec3, Point3, Color
 from .objects import Sphere, HittableList
 from .materials import Lambertian, Metal, Dielectric
-from .textures import Checker, ImageTexture
+from .textures import Checker, ImageTexture, NoiseTexture
 
 
 def bouncing_spheres():
@@ -108,13 +107,33 @@ def earth():
     return world, camera
 
 
+def perlin_spheres():
+    world = HittableList()
+
+    perlin_texture = Lambertian(NoiseTexture(4))
+    world.add(Sphere(1000, perlin_texture, Point3(0, -1000, 0)))
+    world.add(Sphere(2, perlin_texture, Point3(0, 2, 0)))
+
+    camera = Camera(
+        vfov=20,
+        lookfrom=Point3(13, 2, 3),
+        lookat=Point3(0, 0, 0),
+        vup=Vec3(0, 1, 0),
+
+        defocus_angle=0,
+    )
+
+    return world, camera
+
+
 if __name__ == "__main__":
     world, camera = (
         bouncing_spheres,
         bouncing_spheres_ortho,
         checkered_spheres,
         earth,
-    )[1]()
+        perlin_spheres,
+    )[4]()
 
     tracer = Tracer(
         camera=camera,
