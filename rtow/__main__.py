@@ -133,7 +133,7 @@ if __name__ == "__main__":
         checkered_spheres,
         earth,
         perlin_spheres,
-    )[4]()
+    )[0]()
 
     tracer = Tracer(
         camera=camera,

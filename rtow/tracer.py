@@ -1,7 +1,13 @@
-from random import random
+from functools import partial
+from random import random, shuffle
 import sys
-from math import tan
+from math import ceil, tan
+from threading import Lock
+# <python-only>
+from multiprocessing import Pool, Lock, Value
+# </python-only>
 
+from .chunks import CoordChunk, create_coordinate_chunks
 from .util import degrees_to_radians, sample_square, p_inf
 from .buffer import Buffer
 from .interval import Interval
@@ -11,6 +17,10 @@ from .vec3 import Color, Point3, Vec3
 from .bvh import BVHNode
 from .camera import Camera
 
+
+# <python-only>
+chunks_done = Value("d", 0)
+# </python-only>
 
 class Tracer:
     image_width: int            # Rendered image width in pixel count
@@ -31,6 +41,12 @@ class Tracer:
     defocus_disk_v: Vec3        # Defocus disk vertical radius
     render_mode: str            # "full" | "normals"
     camera_mode: str            # "perspective" | "orthographic"
+    chunk_size: int             # Size of chunks for each thread
+    num_threads: int            # Number of threads
+    chunks_done: int            # For tracking progress
+    num_chunks: int             # For tracking progress
+
+    lock = Lock()
 
     def __init__(
             self,
@@ -40,6 +56,8 @@ class Tracer:
             samples_per_pixel: int = 10,
             max_depth: int = 10,
             render_mode: str = "full",
+            chunk_size: int = 32,
+            num_threads: int = 6,
         ):
         self.image_width = image_width
         self.samples_per_pixel = samples_per_pixel
@@ -49,6 +67,9 @@ class Tracer:
         self.image_height = max(1, int(image_width / aspect_ratio))
         real_aspect_ratio = image_width / self.image_height
         self.pixel_samples_scale = 1.0 / samples_per_pixel
+
+        self.chunk_size = chunk_size
+        self.num_threads = num_threads
 
         self.center = camera.lookfrom
         self.focus_dist = camera.focus_dist
@@ -108,49 +129,93 @@ class Tracer:
         a = 0.5 * (unit_direction.y + 1.0)
         return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0)
 
-    def report(self, bvh_depth: int):
+    def report(self, bvh_depth: int, num_chunks: int):
         res1 = f"{self.image_width} x {self.image_height}"
-        res2 = f"({self.image_width * self.image_height / 1e6:3.1f}MP)"
+        res2 = f"{self.image_width * self.image_height / 1e6:3.1f}MP"
         bvh_info1 = f"{bvh_depth}"
-        bvh_info2 = f"({2**bvh_depth} elems)"
-        print(f"Resolution:        {res1:>14} {res2}")
-        print(f"BVH tree depth:    {bvh_info1:>14} {bvh_info2}")
-        print(f"Samples per pixel: {self.samples_per_pixel:14d}")
-        print(f"Max depth:         {self.max_depth:14d}")
+        bvh_info2 = f"{2**(bvh_depth + 1)} leaves"
+        chunks =  f"{num_chunks} x {self.chunk_size} x {self.chunk_size}"
+        print(f"Resolution:        {res1:>14} = {res2}")
+        print(f"BVH tree depth:    {bvh_info1:>14} = {bvh_info2}")
+        print(f"Samples per pixel: {self.samples_per_pixel:14d} @ {self.max_depth} bounces")
+        print(f"Chunks:            {chunks:>14} @ {self.num_threads} threads")
         print(f"Mode:              {self.render_mode:>14}")
         print()
+        self.chunks_done = 0
+        # <python-only>
+        chunks_done.value = 0
+        # </python-only>
+        self.num_chunks = num_chunks
 
-    def status(self, i):
-        i += 1
-        h = self.image_height
-        c = str(i).rjust(len(str(h)))
-        p = i / float(h)
-        pp = "100" if i == h else f"{100 * p:4.1f}"
+    def status(self):
+        i = self.chunks_done
+        # <python-only>
+        i = int(chunks_done.value)
+        # </python-only>
+        max = self.num_chunks
+        c = str(i).rjust(len(str(max)))
+        p = i / float(max)
+        pp = "100" if i == max else f"{100 * p:4.1f}"
         b0 = "#" * int(p * 20)
         b1 = "-" * (20 - len(b0))
-        print(f"\rRendering rows: [{b0}{b1}] {c} / {h} ({pp}%) ", end="", flush=True, file=sys.stderr)
+        print(f"\rRendering chunks: [{b0}{b1}] {c} / {max} ({pp}%) ", end="", flush=True, file=sys.stderr)
+
+        self.chunks_done += 1
+        # <python-only>
+        with chunks_done.get_lock():
+            chunks_done.value += 1
+        # </python-only>
 
     def render(self, world: HittableList) -> Buffer:
         b = Buffer(self.image_width, self.image_height)
         bvh, depth = BVHNode.from_list(world)
 
-        self.report(depth)
-        self.status(-1)
+        coords_chunks = create_coordinate_chunks(self.image_width, self.image_height, self.chunk_size)
+        # <python-only>
+        shuffle(coords_chunks)
+        # </python-only>
 
-        for j in range(self.image_height):
-            row = []
-            for i in range(self.image_width):
-                pixel_color = Color(0, 0, 0)
-                for _ in range(self.samples_per_pixel):
-                    r = self.get_ray(i, j)
-                    pixel_color += self.ray_color(r, self.max_depth, bvh)
+        color_chunks = []
 
-                row.append(self.pixel_samples_scale * pixel_color)
+        def calculate_pixel(i: int, j: int) -> Color:
+            pixel_color = Color(0, 0, 0)
+            for _ in range(self.samples_per_pixel):
+                r = self.get_ray(i, j)
+                pixel_color += self.ray_color(r, self.max_depth, bvh)
+            return self.pixel_samples_scale * pixel_color
 
-            self.status(j)
-            b[j] = row
+        # Creating threads is super slow so we only want to create them once
+        chunks_per_thread = ceil(len(coords_chunks) / self.num_threads)
 
-        print()
+        self.report(depth, len(coords_chunks))
+        self.status()
+
+        # <python-only>
+        func = partial(calculate_coord_chunk, self, bvh)
+        with Pool(processes=self.num_threads) as pool:
+            color_chunks = pool.map(func, coords_chunks, chunksize=chunks_per_thread)
+        # </python-only>
+
+        # <codon-only>
+        @par(num_threads=self.num_threads, chunk_size=chunks_per_thread, ordered=False, schedule="static")
+        for coords in coords_chunks:
+            colors = [
+                [calculate_pixel(i + coords.x0, j + coords.y0) for i in range(coords.width)]
+                for j in range(coords.height)
+            ]
+            with self.lock:
+                color_chunks.append((coords, colors))
+                self.status()
+        # </codon-only>
+
+        # Reassemble picture
+        for chunk in color_chunks:
+            coords, colors = chunk
+            for j in range(len(colors)):
+                for i in range(len(colors[j])):
+                    b[i + coords.x0, j + coords.y0] = colors[j][i]
+
+        print(file=sys.stderr)
         return b
 
     def get_ray(self, i: int, j: int) -> Ray:
@@ -191,3 +256,24 @@ class Tracer:
         """Returns a random point in the camera defocus disk."""
         p = Vec3.random_in_unit_disk()
         return (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
+
+
+# <python-only>
+def calculate_coord_chunk(tracer: Tracer, bvh: BVHNode, coords: CoordChunk):
+    def calculate_pixel(i, j):
+        pixel_color = Color(0, 0, 0)
+        for _ in range(tracer.samples_per_pixel):
+            r = tracer.get_ray(i, j)
+            pixel_color += tracer.ray_color(r, tracer.max_depth, bvh)
+        return tracer.pixel_samples_scale * pixel_color
+
+    colors = [
+        [calculate_pixel(i + coords.x0, j + coords.y0) for i in range(coords.width)]
+        for j in range(coords.height)
+    ]
+
+    with tracer.lock:
+        tracer.status()
+
+    return coords, colors
+# </python-only>

@@ -29,12 +29,12 @@ class Buffer:
     def __getitem__(self, i: int) -> List[Color]:
         return self.buffer[i]
 
-    def __setitem__(self, xy: Tuple[int, int], c: Color):
-        self.buffer[xy[1]][xy[0]] = c
-
     def __setitem__(self, y: int, row: List[Color]):
         assert len(row) == self.w, "Invalid row length"
         self.buffer[y] = row
+
+    def __setitem__(self, xy: Tuple[int, int], c: Color):
+        self.buffer[xy[1]][xy[0]] = c
 
     def raw_buffer(self):
         return [
